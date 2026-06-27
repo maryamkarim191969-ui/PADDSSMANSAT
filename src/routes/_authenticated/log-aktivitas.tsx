@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Activity } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   ActivitySummary,
   ActivityTimeline,
@@ -12,7 +14,8 @@ import {
   ActivityEmptyState,
   type ActivityFilterValue,
 } from "@/components/log";
-import { LOG_DATA, getLogSummary, type LogEntry } from "@/lib/log-data";
+import { getLogSummary, type LogEntry } from "@/lib/log-data";
+import { listActivityLog } from "@/lib/log-aktivitas.functions";
 
 export const Route = createFileRoute("/_authenticated/log-aktivitas")({
   head: () => ({
@@ -28,11 +31,21 @@ function LogPage() {
   const [filter, setFilter] = useState<ActivityFilterValue>({});
   const [search, setSearch] = useState("");
   const [detail, setDetail] = useState<LogEntry | null>(null);
-  const [loading] = useState(false);
+  const fetchLog = useServerFn(listActivityLog);
+  const logQuery = useQuery({
+    queryKey: ["activity-log"],
+    queryFn: () => fetchLog(),
+    refetchOnWindowFocus: true,
+  });
+  const data = useMemo<LogEntry[]>(
+    () => (logQuery.data ?? []) as LogEntry[],
+    [logQuery.data],
+  );
+  const loading = logQuery.isLoading;
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return LOG_DATA.filter((r) => {
+    return data.filter((r) => {
       if (filter.user && r.user !== filter.user) return false;
       if (filter.modul && r.modul !== filter.modul) return false;
       if (filter.jenis && r.jenis !== filter.jenis) return false;
@@ -43,12 +56,12 @@ function LogPage() {
       }
       return true;
     });
-  }, [filter, search]);
+  }, [filter, search, data]);
 
-  const summary = useMemo(() => getLogSummary(LOG_DATA), []);
+  const summary = useMemo(() => getLogSummary(data), [data]);
   const timeline = useMemo(
-    () => [...LOG_DATA].sort((a, b) => b.waktu.localeCompare(a.waktu)).slice(0, 6),
-    [],
+    () => [...data].sort((a, b) => b.waktu.localeCompare(a.waktu)).slice(0, 6),
+    [data],
   );
 
   return (

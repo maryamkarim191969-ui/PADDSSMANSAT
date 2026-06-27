@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentUser, type CurrentUser } from "@/lib/current-user.functions";
+import { recordEvent } from "@/lib/log-aktivitas.functions";
 import type { Permission } from "@/lib/permissions";
 
 const QK = ["current-user"] as const;
@@ -17,11 +18,34 @@ export function useCurrentUser() {
 
   // Keep cached identity in sync with Supabase auth state changes.
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT") {
         qc.setQueryData(QK, null);
       } else if (event === "SIGNED_IN" || event === "USER_UPDATED") {
         void qc.invalidateQueries({ queryKey: QK });
+        // Audit-log every fresh login exactly once per access token.
+        if (event === "SIGNED_IN" && session?.access_token) {
+          const key = `sipastera:login-logged:${session.access_token.slice(0, 24)}`;
+          try {
+            if (typeof sessionStorage !== "undefined" && !sessionStorage.getItem(key)) {
+              sessionStorage.setItem(key, "1");
+              const provider =
+                session.user?.app_metadata?.provider ?? "password";
+              void recordEvent({
+                data: {
+                  action: "auth.login",
+                  detail: `Login berhasil via ${provider}`,
+                  modul: "Auth",
+                  status: "Berhasil",
+                },
+              }).catch((err) =>
+                console.error("[auth] failed to record login", err),
+              );
+            }
+          } catch {
+            /* sessionStorage may be unavailable — ignore */
+          }
+        }
       }
     });
     return () => sub.subscription.unsubscribe();

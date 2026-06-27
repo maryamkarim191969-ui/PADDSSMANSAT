@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { analyzeDocument } from "@/lib/document-intelligence.functions";
-import { createArsip } from "@/lib/upload-arsip.functions";
-import { requestUploadUrl } from "@/lib/storage.functions";
+import { uploadAndCreateArsip } from "@/lib/upload-arsip.functions";
 import { ARSIP_DEPENDENT_KEYS } from "@/lib/query-keys";
 import { validateBatch, validateSingleFile } from "../services/validation";
 import { buildField, emptyMetadata, needsReview } from "../services/metadataNormalizer";
@@ -52,39 +51,6 @@ async function readAsTextSafe(file: File): Promise<string | undefined> {
     }
   }
   return undefined;
-}
-
-/** Upload a Blob to a presigned PUT URL with bounded retry + exponential backoff. */
-async function putWithRetry(
-  url: string,
-  file: File,
-  opts: { maxAttempts?: number; onProgress?: (pct: number) => void } = {},
-): Promise<void> {
-  const max = opts.maxAttempts ?? 3;
-  let lastErr: unknown;
-  for (let attempt = 1; attempt <= max; attempt++) {
-    try {
-      const res = await fetch(url, {
-        method: "PUT",
-        body: file,
-        headers: file.type ? { "Content-Type": file.type } : undefined,
-      });
-      if (!res.ok) {
-        throw new Error(`R2 upload gagal (HTTP ${res.status})`);
-      }
-      opts.onProgress?.(70);
-      return;
-    } catch (e) {
-      lastErr = e;
-      if (attempt < max) {
-        const backoff = 400 * 2 ** (attempt - 1);
-        await new Promise((r) => setTimeout(r, backoff));
-      }
-    }
-  }
-  throw lastErr instanceof Error
-    ? lastErr
-    : new Error("Upload ke storage gagal setelah beberapa percobaan.");
 }
 
 function metadataFromResponse(
@@ -307,32 +273,16 @@ export function useUploadQueue(masters: {
       try {
         const mime = target.file.type || "application/octet-stream";
         const tahun = Number(form.tahun) || new Date().getFullYear();
+        // Encode file bytes for the single-call server upload. This avoids
+        // direct browser→R2 PUTs (which require R2 bucket CORS) and the
+        // associated "Failed to fetch" failures at the network edge.
+        const fileBase64 = await fileToBase64(target.file);
+        update(id, { progress: 30 });
 
-        // 1) Ask the Storage Adapter for a short-lived presigned PUT URL.
-        const presigned = await requestUploadUrl({
-          data: {
-            fileName: target.file.name,
-            mimeType: mime,
-            size: target.file.size,
-            tahun,
-          },
-        });
-
-        update(id, { progress: 20 });
-
-        // 2) Upload the file straight to Cloudflare R2 with retry.
-        await putWithRetry(presigned.uploadUrl, target.file, {
-          maxAttempts: 3,
-          onProgress: (p) => update(id, { progress: p }),
-        });
-
-        update(id, { progress: 80 });
-
-        // 3) Commit metadata. If this fails the server deletes the R2 object.
         const jenisFromMeta =
           (target.metadata?.jenis.value as string | null) ?? "Internal";
 
-        const created = await createArsip({
+        const created = await uploadAndCreateArsip({
           data: {
             nomorSurat: form.nomorSurat.trim(),
             judul: form.judul.trim(),
@@ -342,14 +292,13 @@ export function useUploadQueue(masters: {
             lokasiFisik: form.lokasiFisik || null,
             status: form.status,
             deskripsi: form.deskripsi || null,
-            storageProvider: "r2",
-            bucketName: presigned.bucket,
-            storagePath: presigned.storagePath,
             fileName: target.file.name,
             mimeType: mime,
             fileSize: target.file.size,
+            fileBase64,
           },
         });
+        update(id, { progress: 90 });
 
         update(id, {
           status: "berhasil",

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Plus, Users } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { UserSummary } from "@/components/user/UserSummary";
 import { UserSearch } from "@/components/user/UserSearch";
@@ -14,6 +14,11 @@ import { UserDetail } from "@/components/user/UserDetail";
 import { UserActivityList } from "@/components/user/UserActivity";
 import type { AppUser } from "@/lib/user-data";
 import { listManagedUsers, type ManagedUser } from "@/lib/current-user.functions";
+import {
+  deleteManagedUser,
+  resetUserPassword,
+  updateManagedUser,
+} from "@/lib/user-admin.functions";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { toast } from "sonner";
 
@@ -52,10 +57,54 @@ function toAppUser(m: ManagedUser): AppUser {
 
 function UserPage() {
   const { user: currentUser } = useCurrentUser();
+  const queryClient = useQueryClient();
   const fetchUsers = useServerFn(listManagedUsers);
   const usersQuery = useQuery({
     queryKey: ["managed-users"],
     queryFn: () => fetchUsers(),
+  });
+  const callUpdate = useServerFn(updateManagedUser);
+  const callDelete = useServerFn(deleteManagedUser);
+  const callReset = useServerFn(resetUserPassword);
+
+  const invalidateUsers = () =>
+    queryClient.invalidateQueries({ queryKey: ["managed-users"] });
+
+  const updateMutation = useMutation({
+    mutationFn: (vars: {
+      userId: string;
+      role?: "Admin" | "Staff TU" | "Viewer";
+      status?: "Aktif" | "Nonaktif";
+      name?: string;
+    }) => callUpdate({ data: vars }),
+    onSuccess: () => {
+      toast.success("Perubahan pengguna tersimpan.");
+      void invalidateUsers();
+      void queryClient.invalidateQueries({ queryKey: ["activity-log"] });
+      close();
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Gagal memperbarui user."),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (userId: string) => callDelete({ data: { userId } }),
+    onSuccess: () => {
+      toast.success("User berhasil dihapus.");
+      void invalidateUsers();
+      void queryClient.invalidateQueries({ queryKey: ["activity-log"] });
+      close();
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Gagal menghapus user."),
+  });
+
+  const resetMutation = useMutation({
+    mutationFn: (userId: string) => callReset({ data: { userId } }),
+    onSuccess: (res) => {
+      toast.success(`Link reset password dikirim ke ${res.email}.`);
+      void queryClient.invalidateQueries({ queryKey: ["activity-log"] });
+      close();
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Gagal mengirim link reset."),
   });
   const users: AppUser[] = useMemo(
     () => (usersQuery.data ?? []).map(toAppUser),
@@ -93,15 +142,34 @@ function UserPage() {
     setTarget(null);
   };
 
-  const notSupported = () => {
+  // Creating brand-new accounts is intentionally handled via the public
+  // sign-up flow (email/password or Google/Microsoft via Lovable Cloud).
+  const handleCreate = (_v: UserFormValue) => {
     toast.info(
-      "Modul Manajemen User saat ini berbasis Lovable Cloud — penambahan pengguna baru dilakukan melalui pendaftaran resmi.",
+      "Penambahan akun baru dilakukan melalui halaman pendaftaran resmi.",
     );
     close();
   };
-  const handleCreate = (_v: UserFormValue) => notSupported();
-  const handleEdit = (_v: UserFormValue) => notSupported();
-  const handleDelete = () => notSupported();
+
+  const handleEdit = (v: UserFormValue) => {
+    if (!target) return;
+    updateMutation.mutate({
+      userId: target.id,
+      role: v.role as "Admin" | "Staff TU" | "Viewer",
+      status: v.status as "Aktif" | "Nonaktif",
+      name: v.name,
+    });
+  };
+
+  const handleDelete = () => {
+    if (!target) return;
+    deleteMutation.mutate(target.id);
+  };
+
+  const handleReset = () => {
+    if (!target) return;
+    resetMutation.mutate(target.id);
+  };
 
   return (
     <div className="space-y-6">
@@ -258,7 +326,7 @@ function UserPage() {
             Batal
           </button>
           <button
-            onClick={close}
+            onClick={handleReset}
             className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
           >
             Kirim Link Reset

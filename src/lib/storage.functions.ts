@@ -10,6 +10,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
+import { writeLogEntry } from "@/lib/log-aktivitas.functions";
 import {
   ALLOWED_MIME_TYPES,
   MAX_UPLOAD_BYTES,
@@ -235,6 +236,14 @@ export const deleteArsip = createServerFn({ method: "POST" })
         });
       }
     }
+
+    await writeLogEntry(supabase, context.userId, {
+      action: "arsip.delete",
+      detail: `Menghapus arsip ${row.nomor_surat}`,
+      modul: "Arsip",
+      targetId: data.arsipId,
+      status: "Berhasil",
+    });
 
     return { id: data.arsipId, fileDeleted, metadataDeleted: true };
   });
