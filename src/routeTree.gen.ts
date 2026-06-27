@@ -9,38 +9,298 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as ApiAiChatRouteImport } from './routes/api/ai-chat'
+import { Route as ApiAdminBootstrapRouteImport } from './routes/api/admin-bootstrap'
+import { Route as AuthenticatedUserRouteImport } from './routes/_authenticated/user'
+import { Route as AuthenticatedUploadRouteImport } from './routes/_authenticated/upload'
+import { Route as AuthenticatedStatistikRouteImport } from './routes/_authenticated/statistik'
+import { Route as AuthenticatedRetensiRouteImport } from './routes/_authenticated/retensi'
+import { Route as AuthenticatedQrCodeRouteImport } from './routes/_authenticated/qr-code'
+import { Route as AuthenticatedPengaturanRouteImport } from './routes/_authenticated/pengaturan'
+import { Route as AuthenticatedLokasiFisikRouteImport } from './routes/_authenticated/lokasi-fisik'
+import { Route as AuthenticatedLogAktivitasRouteImport } from './routes/_authenticated/log-aktivitas'
+import { Route as AuthenticatedKategoriRouteImport } from './routes/_authenticated/kategori'
+import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCariRouteImport } from './routes/_authenticated/cari'
+import { Route as AuthenticatedBackupRouteImport } from './routes/_authenticated/backup'
+import { Route as AuthenticatedArsipRouteImport } from './routes/_authenticated/arsip'
+import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
+} as any)
+const ApiAiChatRoute = ApiAiChatRouteImport.update({
+  id: '/api/ai-chat',
+  path: '/api/ai-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminBootstrapRoute = ApiAdminBootstrapRouteImport.update({
+  id: '/api/admin-bootstrap',
+  path: '/api/admin-bootstrap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedUserRoute = AuthenticatedUserRouteImport.update({
+  id: '/user',
+  path: '/user',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedUploadRoute = AuthenticatedUploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStatistikRoute = AuthenticatedStatistikRouteImport.update({
+  id: '/statistik',
+  path: '/statistik',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRetensiRoute = AuthenticatedRetensiRouteImport.update({
+  id: '/retensi',
+  path: '/retensi',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedQrCodeRoute = AuthenticatedQrCodeRouteImport.update({
+  id: '/qr-code',
+  path: '/qr-code',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPengaturanRoute = AuthenticatedPengaturanRouteImport.update({
+  id: '/pengaturan',
+  path: '/pengaturan',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLokasiFisikRoute =
+  AuthenticatedLokasiFisikRouteImport.update({
+    id: '/lokasi-fisik',
+    path: '/lokasi-fisik',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLogAktivitasRoute =
+  AuthenticatedLogAktivitasRouteImport.update({
+    id: '/log-aktivitas',
+    path: '/log-aktivitas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedKategoriRoute = AuthenticatedKategoriRouteImport.update({
+  id: '/kategori',
+  path: '/kategori',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedImportRoute = AuthenticatedImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCariRoute = AuthenticatedCariRouteImport.update({
+  id: '/cari',
+  path: '/cari',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBackupRoute = AuthenticatedBackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedArsipRoute = AuthenticatedArsipRouteImport.update({
+  id: '/arsip',
+  path: '/arsip',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAiAssistantRoute =
+  AuthenticatedAiAssistantRouteImport.update({
+    id: '/ai-assistant',
+    path: '/ai-assistant',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRouteWithChildren
+  '/ai-assistant': typeof AuthenticatedAiAssistantRoute
+  '/arsip': typeof AuthenticatedArsipRoute
+  '/backup': typeof AuthenticatedBackupRoute
+  '/cari': typeof AuthenticatedCariRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/import': typeof AuthenticatedImportRoute
+  '/kategori': typeof AuthenticatedKategoriRoute
+  '/log-aktivitas': typeof AuthenticatedLogAktivitasRoute
+  '/lokasi-fisik': typeof AuthenticatedLokasiFisikRoute
+  '/pengaturan': typeof AuthenticatedPengaturanRoute
+  '/qr-code': typeof AuthenticatedQrCodeRoute
+  '/retensi': typeof AuthenticatedRetensiRoute
+  '/statistik': typeof AuthenticatedStatistikRoute
+  '/upload': typeof AuthenticatedUploadRoute
+  '/user': typeof AuthenticatedUserRoute
+  '/api/admin-bootstrap': typeof ApiAdminBootstrapRoute
+  '/api/ai-chat': typeof ApiAiChatRoute
+  '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRouteWithChildren
+  '/ai-assistant': typeof AuthenticatedAiAssistantRoute
+  '/arsip': typeof AuthenticatedArsipRoute
+  '/backup': typeof AuthenticatedBackupRoute
+  '/cari': typeof AuthenticatedCariRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/import': typeof AuthenticatedImportRoute
+  '/kategori': typeof AuthenticatedKategoriRoute
+  '/log-aktivitas': typeof AuthenticatedLogAktivitasRoute
+  '/lokasi-fisik': typeof AuthenticatedLokasiFisikRoute
+  '/pengaturan': typeof AuthenticatedPengaturanRoute
+  '/qr-code': typeof AuthenticatedQrCodeRoute
+  '/retensi': typeof AuthenticatedRetensiRoute
+  '/statistik': typeof AuthenticatedStatistikRoute
+  '/upload': typeof AuthenticatedUploadRoute
+  '/user': typeof AuthenticatedUserRoute
+  '/api/admin-bootstrap': typeof ApiAdminBootstrapRoute
+  '/api/ai-chat': typeof ApiAiChatRoute
+  '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRouteWithChildren
+  '/_authenticated/ai-assistant': typeof AuthenticatedAiAssistantRoute
+  '/_authenticated/arsip': typeof AuthenticatedArsipRoute
+  '/_authenticated/backup': typeof AuthenticatedBackupRoute
+  '/_authenticated/cari': typeof AuthenticatedCariRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/import': typeof AuthenticatedImportRoute
+  '/_authenticated/kategori': typeof AuthenticatedKategoriRoute
+  '/_authenticated/log-aktivitas': typeof AuthenticatedLogAktivitasRoute
+  '/_authenticated/lokasi-fisik': typeof AuthenticatedLokasiFisikRoute
+  '/_authenticated/pengaturan': typeof AuthenticatedPengaturanRoute
+  '/_authenticated/qr-code': typeof AuthenticatedQrCodeRoute
+  '/_authenticated/retensi': typeof AuthenticatedRetensiRoute
+  '/_authenticated/statistik': typeof AuthenticatedStatistikRoute
+  '/_authenticated/upload': typeof AuthenticatedUploadRoute
+  '/_authenticated/user': typeof AuthenticatedUserRoute
+  '/api/admin-bootstrap': typeof ApiAdminBootstrapRoute
+  '/api/ai-chat': typeof ApiAiChatRoute
+  '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/ai-assistant'
+    | '/arsip'
+    | '/backup'
+    | '/cari'
+    | '/dashboard'
+    | '/import'
+    | '/kategori'
+    | '/log-aktivitas'
+    | '/lokasi-fisik'
+    | '/pengaturan'
+    | '/qr-code'
+    | '/retensi'
+    | '/statistik'
+    | '/upload'
+    | '/user'
+    | '/api/admin-bootstrap'
+    | '/api/ai-chat'
+    | '/auth/callback'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/ai-assistant'
+    | '/arsip'
+    | '/backup'
+    | '/cari'
+    | '/dashboard'
+    | '/import'
+    | '/kategori'
+    | '/log-aktivitas'
+    | '/lokasi-fisik'
+    | '/pengaturan'
+    | '/qr-code'
+    | '/retensi'
+    | '/statistik'
+    | '/upload'
+    | '/user'
+    | '/api/admin-bootstrap'
+    | '/api/ai-chat'
+    | '/auth/callback'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/ai-assistant'
+    | '/_authenticated/arsip'
+    | '/_authenticated/backup'
+    | '/_authenticated/cari'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/import'
+    | '/_authenticated/kategori'
+    | '/_authenticated/log-aktivitas'
+    | '/_authenticated/lokasi-fisik'
+    | '/_authenticated/pengaturan'
+    | '/_authenticated/qr-code'
+    | '/_authenticated/retensi'
+    | '/_authenticated/statistik'
+    | '/_authenticated/upload'
+    | '/_authenticated/user'
+    | '/api/admin-bootstrap'
+    | '/api/ai-chat'
+    | '/auth/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRouteWithChildren
+  ApiAdminBootstrapRoute: typeof ApiAdminBootstrapRoute
+  ApiAiChatRoute: typeof ApiAiChatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +308,190 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/api/ai-chat': {
+      id: '/api/ai-chat'
+      path: '/api/ai-chat'
+      fullPath: '/api/ai-chat'
+      preLoaderRoute: typeof ApiAiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin-bootstrap': {
+      id: '/api/admin-bootstrap'
+      path: '/api/admin-bootstrap'
+      fullPath: '/api/admin-bootstrap'
+      preLoaderRoute: typeof ApiAdminBootstrapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/user': {
+      id: '/_authenticated/user'
+      path: '/user'
+      fullPath: '/user'
+      preLoaderRoute: typeof AuthenticatedUserRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/upload': {
+      id: '/_authenticated/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof AuthenticatedUploadRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/statistik': {
+      id: '/_authenticated/statistik'
+      path: '/statistik'
+      fullPath: '/statistik'
+      preLoaderRoute: typeof AuthenticatedStatistikRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/retensi': {
+      id: '/_authenticated/retensi'
+      path: '/retensi'
+      fullPath: '/retensi'
+      preLoaderRoute: typeof AuthenticatedRetensiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/qr-code': {
+      id: '/_authenticated/qr-code'
+      path: '/qr-code'
+      fullPath: '/qr-code'
+      preLoaderRoute: typeof AuthenticatedQrCodeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pengaturan': {
+      id: '/_authenticated/pengaturan'
+      path: '/pengaturan'
+      fullPath: '/pengaturan'
+      preLoaderRoute: typeof AuthenticatedPengaturanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/lokasi-fisik': {
+      id: '/_authenticated/lokasi-fisik'
+      path: '/lokasi-fisik'
+      fullPath: '/lokasi-fisik'
+      preLoaderRoute: typeof AuthenticatedLokasiFisikRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/log-aktivitas': {
+      id: '/_authenticated/log-aktivitas'
+      path: '/log-aktivitas'
+      fullPath: '/log-aktivitas'
+      preLoaderRoute: typeof AuthenticatedLogAktivitasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/kategori': {
+      id: '/_authenticated/kategori'
+      path: '/kategori'
+      fullPath: '/kategori'
+      preLoaderRoute: typeof AuthenticatedKategoriRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/import': {
+      id: '/_authenticated/import'
+      path: '/import'
+      fullPath: '/import'
+      preLoaderRoute: typeof AuthenticatedImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cari': {
+      id: '/_authenticated/cari'
+      path: '/cari'
+      fullPath: '/cari'
+      preLoaderRoute: typeof AuthenticatedCariRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/backup': {
+      id: '/_authenticated/backup'
+      path: '/backup'
+      fullPath: '/backup'
+      preLoaderRoute: typeof AuthenticatedBackupRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/arsip': {
+      id: '/_authenticated/arsip'
+      path: '/arsip'
+      fullPath: '/arsip'
+      preLoaderRoute: typeof AuthenticatedArsipRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ai-assistant': {
+      id: '/_authenticated/ai-assistant'
+      path: '/ai-assistant'
+      fullPath: '/ai-assistant'
+      preLoaderRoute: typeof AuthenticatedAiAssistantRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAiAssistantRoute: typeof AuthenticatedAiAssistantRoute
+  AuthenticatedArsipRoute: typeof AuthenticatedArsipRoute
+  AuthenticatedBackupRoute: typeof AuthenticatedBackupRoute
+  AuthenticatedCariRoute: typeof AuthenticatedCariRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedImportRoute: typeof AuthenticatedImportRoute
+  AuthenticatedKategoriRoute: typeof AuthenticatedKategoriRoute
+  AuthenticatedLogAktivitasRoute: typeof AuthenticatedLogAktivitasRoute
+  AuthenticatedLokasiFisikRoute: typeof AuthenticatedLokasiFisikRoute
+  AuthenticatedPengaturanRoute: typeof AuthenticatedPengaturanRoute
+  AuthenticatedQrCodeRoute: typeof AuthenticatedQrCodeRoute
+  AuthenticatedRetensiRoute: typeof AuthenticatedRetensiRoute
+  AuthenticatedStatistikRoute: typeof AuthenticatedStatistikRoute
+  AuthenticatedUploadRoute: typeof AuthenticatedUploadRoute
+  AuthenticatedUserRoute: typeof AuthenticatedUserRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAiAssistantRoute: AuthenticatedAiAssistantRoute,
+  AuthenticatedArsipRoute: AuthenticatedArsipRoute,
+  AuthenticatedBackupRoute: AuthenticatedBackupRoute,
+  AuthenticatedCariRoute: AuthenticatedCariRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedImportRoute: AuthenticatedImportRoute,
+  AuthenticatedKategoriRoute: AuthenticatedKategoriRoute,
+  AuthenticatedLogAktivitasRoute: AuthenticatedLogAktivitasRoute,
+  AuthenticatedLokasiFisikRoute: AuthenticatedLokasiFisikRoute,
+  AuthenticatedPengaturanRoute: AuthenticatedPengaturanRoute,
+  AuthenticatedQrCodeRoute: AuthenticatedQrCodeRoute,
+  AuthenticatedRetensiRoute: AuthenticatedRetensiRoute,
+  AuthenticatedStatistikRoute: AuthenticatedStatistikRoute,
+  AuthenticatedUploadRoute: AuthenticatedUploadRoute,
+  AuthenticatedUserRoute: AuthenticatedUserRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRouteWithChildren,
+  ApiAdminBootstrapRoute: ApiAdminBootstrapRoute,
+  ApiAiChatRoute: ApiAiChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
