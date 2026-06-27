@@ -1,0 +1,1 @@
+ALTER TABLE public.log_aktivitas ADD COLUMN IF NOT EXISTS ip TEXT; ALTER TABLE public.log_aktivitas ADD COLUMN IF NOT EXISTS role TEXT;
