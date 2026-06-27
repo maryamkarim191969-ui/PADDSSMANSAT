@@ -30,6 +30,7 @@ import { Route as AuthenticatedCariRouteImport } from './routes/_authenticated/c
 import { Route as AuthenticatedBackupRouteImport } from './routes/_authenticated/backup'
 import { Route as AuthenticatedArsipRouteImport } from './routes/_authenticated/arsip'
 import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
+import { Route as PArsipIdRouteImport } from './routes/p.arsip.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -138,6 +139,11 @@ const AuthenticatedAiAssistantRoute =
     path: '/ai-assistant',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const PArsipIdRoute = PArsipIdRouteImport.update({
+  id: '/p/arsip/$id',
+  path: '/p/arsip/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/api/admin-bootstrap': typeof ApiAdminBootstrapRoute
   '/api/ai-chat': typeof ApiAiChatRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/p/arsip/$id': typeof PArsipIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/api/admin-bootstrap': typeof ApiAdminBootstrapRoute
   '/api/ai-chat': typeof ApiAiChatRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/p/arsip/$id': typeof PArsipIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/api/admin-bootstrap': typeof ApiAdminBootstrapRoute
   '/api/ai-chat': typeof ApiAiChatRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/p/arsip/$id': typeof PArsipIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/api/admin-bootstrap'
     | '/api/ai-chat'
     | '/auth/callback'
+    | '/p/arsip/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -252,6 +262,7 @@ export interface FileRouteTypes {
     | '/api/admin-bootstrap'
     | '/api/ai-chat'
     | '/auth/callback'
+    | '/p/arsip/$id'
   id:
     | '__root__'
     | '/'
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/api/admin-bootstrap'
     | '/api/ai-chat'
     | '/auth/callback'
+    | '/p/arsip/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -283,6 +295,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   ApiAdminBootstrapRoute: typeof ApiAdminBootstrapRoute
   ApiAiChatRoute: typeof ApiAiChatRoute
+  PArsipIdRoute: typeof PArsipIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -434,6 +447,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAiAssistantRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/p/arsip/$id': {
+      id: '/p/arsip/$id'
+      path: '/p/arsip/$id'
+      fullPath: '/p/arsip/$id'
+      preLoaderRoute: typeof PArsipIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -492,6 +512,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   ApiAdminBootstrapRoute: ApiAdminBootstrapRoute,
   ApiAiChatRoute: ApiAiChatRoute,
+  PArsipIdRoute: PArsipIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
