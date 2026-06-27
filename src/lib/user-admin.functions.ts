@@ -70,7 +70,7 @@ export const updateManagedUser = createServerFn({ method: "POST" })
     }
 
     // ----- profile (name / status) -----
-    const profilePatch: Record<string, string> = {};
+    const profilePatch: { name?: string; status?: string } = {};
     if (data.name) profilePatch.name = data.name;
     if (data.status) profilePatch.status = data.status;
     if (Object.keys(profilePatch).length > 0) {
