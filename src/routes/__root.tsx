@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -77,19 +78,44 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "SIPASTERA — Sistem Informasi Arsip Digital Sekolah" },
+      {
+        name: "description",
+        content:
+          "SIPASTERA: Sistem Informasi Pengarsipan Sekolah Terpadu berbasis QR Code.",
+      },
+      { name: "author", content: "SIPASTERA" },
+      { property: "og:title", content: "SIPASTERA — Sistem Informasi Arsip Digital Sekolah" },
+      {
+        property: "og:description",
+        content: "Sistem Informasi Arsip Digital Sekolah Berbasis QR Code.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "SIPASTERA — Sistem Informasi Arsip Digital Sekolah" },
+      { name: "description", content: "Follow Instructions executes tasks based on provided user directives." },
+      { property: "og:description", content: "Follow Instructions executes tasks based on provided user directives." },
+      { name: "twitter:description", content: "Follow Instructions executes tasks based on provided user directives." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ca9c29c8-69bf-40f8-91fd-f97ebcfbf8a6/id-preview-dcc95a67--58f8bb64-8b9d-46b8-a2ea-b79aba99d350.lovable.app-1782376091559.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ca9c29c8-69bf-40f8-91fd-f97ebcfbf8a6/id-preview-dcc95a67--58f8bb64-8b9d-46b8-a2ea-b79aba99d350.lovable.app-1782376091559.png" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.googleapis.com",
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
       },
     ],
   }),
@@ -116,10 +142,34 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // Fire-once idempotent Administrator seed. The endpoint itself is
+  // idempotent (checks auth.users + upserts the role), so the localStorage
+  // guard is just a friendly client-side rate-limit. The seed uses the
+  // standard Supabase Auth flow — no login bypass.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const KEY = "sipastera_admin_bootstrap_v1";
+      if (localStorage.getItem(KEY)) return;
+      void fetch("/api/admin-bootstrap")
+        .then((r) => r.json().catch(() => null))
+        .then((res) => {
+          if (res?.ok) localStorage.setItem(KEY, String(Date.now()));
+        })
+        .catch(() => {
+          // Network errors here are non-fatal — admin seed will retry next load.
+        });
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // AppShell is mounted inside the `_authenticated/` layout so it only wraps
+  // protected routes — public routes like `/auth` render bare.
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>
   );
 }
