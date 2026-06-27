@@ -9,6 +9,7 @@ export const DEFAULT_FORM: ArsipFormValues = {
   nomorSurat: "",
   judul: "",
   kategori: "",
+  jenis: "Internal",
   tahun: String(new Date().getFullYear()),
   tanggalSurat: "",
   lokasiFisik: "",
@@ -63,6 +64,18 @@ export function buildFormFromMetadata(
   if (kategoriMatch) {
     form.kategori = kategoriMatch;
     aiFilled.kategori = true;
+  }
+
+  const jenisRaw = ((meta.jenis.value as string | null) ?? "").toLowerCase();
+  if (jenisRaw.includes("masuk")) {
+    form.jenis = "Surat Masuk";
+    aiFilled.jenis = true;
+  } else if (jenisRaw.includes("keluar")) {
+    form.jenis = "Surat Keluar";
+    aiFilled.jenis = true;
+  } else if (jenisRaw.includes("internal") || jenisRaw.includes("memo") || jenisRaw.includes("nota")) {
+    form.jenis = "Internal";
+    aiFilled.jenis = true;
   }
 
   const lokasiRaw = (meta.lokasiFisik.value as string | null) ?? "";

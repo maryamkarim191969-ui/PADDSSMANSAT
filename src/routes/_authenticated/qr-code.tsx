@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { QrCode } from "lucide-react";
 import { QRSummary } from "@/components/qr/QRSummary";
 import { QRSearch } from "@/components/qr/QRSearch";
@@ -9,7 +9,9 @@ import { QREmptyState } from "@/components/qr/QREmptyState";
 import { QRBulkAction } from "@/components/qr/QRBulkAction";
 import { QRDialog } from "@/components/qr/QRDialog";
 import { QRDetail } from "@/components/qr/QRDetail";
-import { initialQR, type QRItem } from "@/lib/qr-data";
+import { type QRItem } from "@/lib/qr-data";
+import { useArsipList } from "@/hooks/use-arsip";
+import { publicLinkFor } from "@/components/arsip/utils";
 
 export const Route = createFileRoute("/_authenticated/qr-code")({
   head: () => ({
@@ -25,7 +27,58 @@ export const Route = createFileRoute("/_authenticated/qr-code")({
 });
 
 function QRCodePage() {
-  const [items, setItems] = useState<QRItem[]>(initialQR);
+  // QR items are derived from the arsip table — every saved arsip has exactly
+  // one QR (one public link). UI-only state (status toggle, history) lives in
+  // local state on top of the derived list so the page stays interactive.
+  const arsipQuery = useArsipList({ page: 1, pageSize: 200, sort: "newest" });
+  const arsipRows = arsipQuery.data?.rows ?? [];
+
+  const baseItems = useMemo<QRItem[]>(() => {
+    return arsipRows.map((a) => ({
+      id: a.id,
+      nomorSurat: a.nomorSurat,
+      namaArsip: a.judul,
+      publicLink: publicLinkFor(a.id),
+      status: "Aktif",
+      totalScan: 0,
+      scanToday: 0,
+      scanWeek: 0,
+      scanMonth: 0,
+      createdAt: a.tanggalUpload,
+      lastScanAt: null,
+      history: [
+        {
+          id: `h-${a.id}-init`,
+          action: "Dibuat",
+          at: a.tanggalUpload,
+          by: "Sistem",
+        },
+      ],
+      series: [0, 0, 0, 0, 0, 0, 0],
+    }));
+  }, [arsipRows]);
+
+  const [items, setItems] = useState<QRItem[]>(baseItems);
+
+  // Re-sync derived items whenever the arsip query refreshes (after uploads,
+  // edits, deletes). Local UI-only mutations (status toggle, regenerate) are
+  // re-applied on top.
+  useEffect(() => {
+    setItems((prev) => {
+      const prevById = new Map(prev.map((q) => [q.id, q]));
+      return baseItems.map((next) => {
+        const old = prevById.get(next.id);
+        if (!old) return next;
+        return {
+          ...next,
+          status: old.status,
+          publicLink: old.publicLink,
+          history: old.history,
+        };
+      });
+    });
+  }, [baseItems]);
+
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<QRFilterValue>("all");
   const [sort, setSort] = useState<QRSortValue>("terbaru");

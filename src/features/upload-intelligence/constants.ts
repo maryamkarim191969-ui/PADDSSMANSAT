@@ -61,6 +61,8 @@ export const RETENSI_OPTIONS = [
 
 export const STATUS_OPTIONS = ["Aktif", "Retensi", "Nonaktif"] as const;
 
+export const JENIS_OPTIONS = ["Surat Masuk", "Surat Keluar", "Internal"] as const;
+
 export function isImageMime(mime: string) {
   return mime.startsWith("image/");
 }

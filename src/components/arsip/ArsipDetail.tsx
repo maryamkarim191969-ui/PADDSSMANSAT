@@ -46,7 +46,7 @@ export function ArsipDetail({
   if (!arsip) return null;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-start gap-2 pr-6 text-base">
             <FileText className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -55,21 +55,23 @@ export function ArsipDetail({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-medium ${jenisTone(arsip.jenis)}`}>
               {arsip.jenis}
             </span>
             <span className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-medium ${statusTone(arsip.status)}`}>
               {arsip.status}
             </span>
-            <span className="font-mono text-xs text-muted-foreground">{arsip.nomorSurat}</span>
+            <span className="ml-auto truncate font-mono text-xs text-muted-foreground">
+              {arsip.nomorSurat}
+            </span>
           </div>
 
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <Field icon={Hash} label="Nomor Surat">{arsip.nomorSurat}</Field>
             <Field icon={Tag} label="Kategori">{arsip.kategori}</Field>
             <Field icon={Calendar} label="Tahun">{arsip.tahun}</Field>
-            <Field icon={MapPin} label="Lokasi Fisik">{arsip.lokasiFisik}</Field>
+            <Field icon={MapPin} label="Lokasi Fisik">{arsip.lokasiFisik || "—"}</Field>
             <Field icon={Calendar} label="Tanggal Upload">{formatDateTime(arsip.tanggalUpload)}</Field>
             <Field icon={FolderTree} label="Status">{arsip.status}</Field>
           </div>
@@ -78,8 +80,8 @@ export function ArsipDetail({
             <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Deskripsi
             </p>
-            <p className="rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-sm leading-relaxed text-foreground">
-              {arsip.deskripsi}
+            <p className="whitespace-pre-wrap break-words rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-sm leading-relaxed text-foreground">
+              {arsip.deskripsi || "—"}
             </p>
           </div>
 

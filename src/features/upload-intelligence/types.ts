@@ -47,6 +47,8 @@ export type AnalysisDurations = {
 
 export type ArsipStatusForm = "Aktif" | "Retensi" | "Nonaktif";
 
+export type ArsipJenisForm = "Surat Masuk" | "Surat Keluar" | "Internal";
+
 /**
  * SIPASTERA form values. This is the single source of truth for what gets
  * saved to the arsip table. AI extraction prefills these; the operator can
@@ -56,6 +58,7 @@ export type ArsipFormValues = {
   nomorSurat: string;
   judul: string;
   kategori: string;
+  jenis: ArsipJenisForm;
   tahun: string;
   tanggalSurat: string; // YYYY-MM-DD, "" when empty
   lokasiFisik: string;

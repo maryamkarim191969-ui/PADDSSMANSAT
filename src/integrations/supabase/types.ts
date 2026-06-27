@@ -146,6 +146,8 @@ export type Database = {
           at: string
           detail: string | null
           id: string
+          ip: string | null
+          role: string | null
           source: string
           status: string
           target_id: string | null
@@ -158,6 +160,8 @@ export type Database = {
           at?: string
           detail?: string | null
           id?: string
+          ip?: string | null
+          role?: string | null
           source?: string
           status?: string
           target_id?: string | null
@@ -170,6 +174,8 @@ export type Database = {
           at?: string
           detail?: string | null
           id?: string
+          ip?: string | null
+          role?: string | null
           source?: string
           status?: string
           target_id?: string | null

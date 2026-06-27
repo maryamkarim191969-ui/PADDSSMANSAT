@@ -279,15 +279,12 @@ export function useUploadQueue(masters: {
         const fileBase64 = await fileToBase64(target.file);
         update(id, { progress: 30 });
 
-        const jenisFromMeta =
-          (target.metadata?.jenis.value as string | null) ?? "Internal";
-
         const created = await uploadAndCreateArsip({
           data: {
             nomorSurat: form.nomorSurat.trim(),
             judul: form.judul.trim(),
             kategori: form.kategori.trim(),
-            jenis: jenisFromMeta,
+            jenis: form.jenis,
             tahun,
             lokasiFisik: form.lokasiFisik || null,
             status: form.status,

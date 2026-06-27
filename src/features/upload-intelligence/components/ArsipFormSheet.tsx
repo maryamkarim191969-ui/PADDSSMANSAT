@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RETENSI_OPTIONS, STATUS_OPTIONS } from "../constants";
+import { JENIS_OPTIONS, RETENSI_OPTIONS, STATUS_OPTIONS } from "../constants";
 import {
   DEFAULT_FORM,
   validateForm,
@@ -173,6 +173,26 @@ export function ArsipFormSheet({
                 placeholder="2026"
                 className="h-10"
               />
+            </Field>
+
+            <Field label="Status Surat" required ai={aiFilled.jenis}>
+              <Select
+                value={form.jenis}
+                onValueChange={(v) =>
+                  patch("jenis", v as ArsipFormValues["jenis"])
+                }
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Pilih status surat" />
+                </SelectTrigger>
+                <SelectContent>
+                  {JENIS_OPTIONS.map((j) => (
+                    <SelectItem key={j} value={j}>
+                      {j}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
 
             <Field label="Tanggal Surat" ai={aiFilled.tanggalSurat}>
