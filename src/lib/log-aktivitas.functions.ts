@@ -6,6 +6,7 @@
  * `listActivityLog`.
  */
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -56,6 +57,47 @@ const RecordInput = z.object({
 });
 
 /**
+ * Best-effort client IP extraction from the inbound request. Cloudflare
+ * Workers and most reverse proxies expose the original client IP via
+ * `cf-connecting-ip` / `x-forwarded-for`. Returns `null` when unavailable
+ * (e.g. local dev without proxy headers).
+ */
+export function extractClientIp(): string | null {
+  try {
+    const req = getRequest();
+    const h = req?.headers;
+    if (!h) return null;
+    const cf = h.get("cf-connecting-ip");
+    if (cf) return cf.trim();
+    const xff = h.get("x-forwarded-for");
+    if (xff) return xff.split(",")[0]!.trim();
+    const xri = h.get("x-real-ip");
+    if (xri) return xri.trim();
+  } catch {
+    /* getRequest may throw outside request context */
+  }
+  return null;
+}
+
+async function resolveUserRoleSlug(
+  supabase: AppSupabase,
+  userId: string,
+): Promise<string | null> {
+  try {
+    for (const role of ["admin", "staff_tu", "viewer"] as const) {
+      const { data } = await supabase.rpc("has_role", {
+        _user_id: userId,
+        _role: role,
+      });
+      if (data === true) return role;
+    }
+  } catch {
+    /* ignore — role is best-effort */
+  }
+  return null;
+}
+
+/**
  * Internal helper — write a single log row using the authenticated
  * Supabase client (RLS allows insert when user_id matches auth.uid()).
  * Never throws — logging failures must not break user-facing flows.
@@ -70,6 +112,8 @@ export async function writeLogEntry(
     toolName?: string | null;
     targetId?: string | null;
     status?: ActivityStatus;
+    ip?: string | null;
+    role?: string | null;
   },
 ): Promise<void> {
   try {
@@ -79,6 +123,8 @@ export async function writeLogEntry(
       .eq("id", userId)
       .maybeSingle();
     const userName = profile?.name || profile?.email || "Pengguna";
+    const ip = row.ip ?? extractClientIp();
+    const roleSlug = row.role ?? (await resolveUserRoleSlug(supabase, userId));
     await supabase.from("log_aktivitas").insert({
       user_id: userId,
       user_name: userName,
@@ -88,6 +134,8 @@ export async function writeLogEntry(
       target_id: row.targetId ?? null,
       status: row.status ?? "Berhasil",
       source: row.modul ?? "Sistem",
+      ip,
+      role: roleSlug,
     });
   } catch (err) {
     console.error("[writeLogEntry] failed to insert", err);
@@ -147,7 +195,7 @@ export const listActivityLog = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("log_aktivitas")
       .select(
-        "id, user_id, user_name, action, detail, tool_name, target_id, status, source, at",
+        "id, user_id, user_name, action, detail, tool_name, target_id, status, source, at, ip, role",
       )
       .order("at", { ascending: false })
       .limit(500);
@@ -166,17 +214,24 @@ export const listActivityLog = createServerFn({ method: "GET" })
       status: string;
       source: string;
       at: string;
+      ip: string | null;
+      role: string | null;
+    };
+    const ROLE_LABEL: Record<string, string> = {
+      admin: "Admin",
+      staff_tu: "Staff TU",
+      viewer: "Viewer",
     };
     return ((data ?? []) as Row[]).map((r): ActivityLogRow => ({
       id: r.id,
       user: r.user_name || "Sistem",
-      role: "",
+      role: r.role ? (ROLE_LABEL[r.role] ?? r.role) : "—",
       aktivitas: r.detail || r.action,
       jenis: deriveJenis(r.action),
       modul: deriveModul(r.source, r.action),
       waktu: r.at,
       status: (r.status === "Gagal" ? "Gagal" : "Berhasil") as ActivityStatus,
-      ip: "-",
+      ip: r.ip || "—",
       detail: r.detail || r.action,
     }));
   });
