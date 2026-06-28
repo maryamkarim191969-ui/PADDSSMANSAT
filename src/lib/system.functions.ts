@@ -61,11 +61,12 @@ export const getStorageStats = createServerFn({ method: "GET" })
 /* SYSTEM SETTINGS                                                    */
 /* ---------------------------------------------------------------- */
 
-const SettingsSchema = z.record(z.string(), z.unknown());
+const SettingsSchema = z.any();
+export type SystemSettingsBlob = Record<string, unknown>;
 
 export const getSystemSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<Record<string, unknown> | null> => {
+  .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("system_settings")
       .select("value")
@@ -73,9 +74,11 @@ export const getSystemSettings = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) {
       console.error("[getSystemSettings]", error);
-      return null;
+      return { value: null as SystemSettingsBlob | null };
     }
-    return ((data?.value as Record<string, unknown> | null) ?? null);
+    return {
+      value: ((data?.value as SystemSettingsBlob | null) ?? null),
+    };
   });
 
 export const saveSystemSettings = createServerFn({ method: "POST" })
@@ -88,7 +91,8 @@ export const saveSystemSettings = createServerFn({ method: "POST" })
       .upsert(
         {
           id: SETTINGS_ID,
-          value: data,
+          // jsonb column — cast through unknown to satisfy generated Json type
+          value: data as unknown as never,
           updated_at: new Date().toISOString(),
           updated_by: context.userId,
         },
