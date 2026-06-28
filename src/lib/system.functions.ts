@@ -61,12 +61,12 @@ export const getStorageStats = createServerFn({ method: "GET" })
 /* SYSTEM SETTINGS                                                    */
 /* ---------------------------------------------------------------- */
 
-const SettingsSchema = z.any();
 export type SystemSettingsBlob = Record<string, unknown>;
+const SettingsInput = z.object({ json: z.string().min(2).max(200_000) });
 
 export const getSystemSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async ({ context }): Promise<{ json: string | null }> => {
     const { data, error } = await context.supabase
       .from("system_settings")
       .select("value")
@@ -74,25 +74,30 @@ export const getSystemSettings = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) {
       console.error("[getSystemSettings]", error);
-      return { value: null as SystemSettingsBlob | null };
+      return { json: null };
     }
-    return {
-      value: ((data?.value as SystemSettingsBlob | null) ?? null),
-    };
+    if (!data?.value) return { json: null };
+    return { json: JSON.stringify(data.value) };
   });
 
 export const saveSystemSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => SettingsSchema.parse(input))
+  .inputValidator((input: unknown) => SettingsInput.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(data.json);
+    } catch {
+      throw new Error("Format pengaturan tidak valid.");
+    }
     const { error } = await context.supabase
       .from("system_settings")
       .upsert(
         {
           id: SETTINGS_ID,
           // jsonb column — cast through unknown to satisfy generated Json type
-          value: data as unknown as never,
+          value: parsed as unknown as never,
           updated_at: new Date().toISOString(),
           updated_by: context.userId,
         },
