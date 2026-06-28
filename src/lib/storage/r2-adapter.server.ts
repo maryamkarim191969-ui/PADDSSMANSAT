@@ -11,6 +11,7 @@ import {
   GetObjectCommand,
   DeleteObjectCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
   NoSuchKey,
   NotFound,
 } from "@aws-sdk/client-s3";
@@ -175,6 +176,32 @@ export class R2StorageAdapter implements StorageAdapter {
     } catch (err) {
       throw new StorageError(`Gagal membuat signed URL: ${(err as Error).message}`, err);
     }
+  }
+
+  async getStats(prefix?: string): Promise<{ objectCount: number; totalBytes: number }> {
+    let count = 0;
+    let bytes = 0;
+    let token: string | undefined;
+    try {
+      do {
+        const out = await this.client.send(
+          new ListObjectsV2Command({
+            Bucket: this.bucket,
+            Prefix: prefix,
+            ContinuationToken: token,
+            MaxKeys: 1000,
+          }),
+        );
+        for (const obj of out.Contents ?? []) {
+          count += 1;
+          bytes += typeof obj.Size === "number" ? obj.Size : 0;
+        }
+        token = out.IsTruncated ? out.NextContinuationToken : undefined;
+      } while (token);
+    } catch (err) {
+      throw new StorageError(`Gagal membaca statistik R2: ${(err as Error).message}`, err);
+    }
+    return { objectCount: count, totalBytes: bytes };
   }
 }
 
