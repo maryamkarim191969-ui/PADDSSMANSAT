@@ -82,30 +82,36 @@ export type Database = {
       }
       backup: {
         Row: {
+          bytes: number | null
           created_at: string
           id: string
           name: string
           scope: string
           size: string
           status: string
+          storage_path: string | null
           type: string
         }
         Insert: {
+          bytes?: number | null
           created_at?: string
           id?: string
           name: string
           scope?: string
           size?: string
           status?: string
+          storage_path?: string | null
           type?: string
         }
         Update: {
+          bytes?: number | null
           created_at?: string
           id?: string
           name?: string
           scope?: string
           size?: string
           status?: string
+          storage_path?: string | null
           type?: string
         }
         Relationships: []
@@ -288,6 +294,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_settings: {
+        Row: {
+          id: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          id: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

@@ -1,4 +1,5 @@
 import { ArrowRight, Activity, Eye } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 export type AktivitasItem = { title: string; user: string; time: string };
 
@@ -10,9 +11,12 @@ export function AktivitasTerkini({ items = [] }: { items?: AktivitasItem[] }) {
           <Activity className="h-4 w-4 text-muted-foreground" />
           <h3 className="truncate text-sm font-semibold text-foreground">Aktivitas Terkini</h3>
         </div>
-        <button className="flex shrink-0 items-center gap-1 text-xs font-medium text-primary hover:underline">
+        <Link
+          to="/log-aktivitas"
+          className="flex shrink-0 items-center gap-1 text-xs font-medium text-primary hover:underline"
+        >
           Semua <ArrowRight className="h-3 w-3" />
-        </button>
+        </Link>
       </header>
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center px-6 py-12 text-center">

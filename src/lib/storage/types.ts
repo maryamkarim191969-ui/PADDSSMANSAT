@@ -57,6 +57,12 @@ export interface StorageAdapter {
   /** Convenience: GET signed URL for inline preview. */
   preview(storagePath: string, opts?: { expiresIn?: number; contentType?: string }): Promise<SignedUrlResult>;
   getSignedUrl(storagePath: string, opts: SignedUrlOptions): Promise<SignedUrlResult>;
+  /**
+   * Aggregate object metadata across an optional key prefix. Implementations
+   * page through the underlying provider listing API and sum sizes — callers
+   * use this for storage monitoring panels.
+   */
+  getStats(prefix?: string): Promise<{ objectCount: number; totalBytes: number }>;
 }
 
 export class StorageObjectNotFoundError extends Error {
