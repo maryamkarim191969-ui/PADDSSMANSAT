@@ -6,7 +6,6 @@
  * `listActivityLog`.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -62,8 +61,9 @@ const RecordInput = z.object({
  * `cf-connecting-ip` / `x-forwarded-for`. Returns `null` when unavailable
  * (e.g. local dev without proxy headers).
  */
-export function extractClientIp(): string | null {
+export async function extractClientIp(): Promise<string | null> {
   try {
+    const { getRequest } = await import("@tanstack/react-start/server");
     const req = getRequest();
     const h = req?.headers;
     if (!h) return null;
@@ -123,7 +123,7 @@ export async function writeLogEntry(
       .eq("id", userId)
       .maybeSingle();
     const userName = profile?.name || profile?.email || "Pengguna";
-    const ip = row.ip ?? extractClientIp();
+    const ip = row.ip ?? (await extractClientIp());
     const roleSlug = row.role ?? (await resolveUserRoleSlug(supabase, userId));
     await supabase.from("log_aktivitas").insert({
       user_id: userId,
