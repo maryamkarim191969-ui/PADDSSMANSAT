@@ -22,7 +22,7 @@ const items: Item[] = [
   { label: "Upload Arsip", hint: "Tambah dokumen baru", to: "/upload", icon: Upload, primary: true },
   { label: "Manajemen Arsip", hint: "Lihat & kelola dokumen", to: "/arsip", icon: FolderOpen },
   { label: "Cari Arsip", hint: "Temukan dokumen cepat", to: "/cari", icon: Search },
-  { label: "QR Code", hint: "Scan & cetak label", to: "/lokasi-fisik", icon: QrCode },
+  { label: "QR Code", hint: "Scan & cetak label", to: "/qr-code", icon: QrCode },
   { label: "Statistik", hint: "Laporan & analisis", to: "/statistik", icon: BarChart3 },
   { label: "Retensi", hint: "Pantau masa simpan", to: "/retensi", icon: ShieldAlert },
 ];
