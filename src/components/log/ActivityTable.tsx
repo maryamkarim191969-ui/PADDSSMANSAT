@@ -1,14 +1,15 @@
-import { Eye } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { LogEntry } from "@/lib/log-data";
 import { formatWaktu } from "@/lib/log-data";
 import { JenisBadge, StatusBadge } from "./ActivityStatusBadge";
 
 export function ActivityTable({
-  rows, onView,
+  rows, onView, onDelete,
 }: {
   rows: LogEntry[];
   onView: (row: LogEntry) => void;
+  onDelete?: (row: LogEntry) => void;
 }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -44,6 +45,16 @@ export function ActivityTable({
                   <Button variant="ghost" size="sm" onClick={() => onView(r)}>
                     <Eye className="mr-1.5 h-4 w-4" /> Detail
                   </Button>
+                  {onDelete && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(r)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </td>
               </tr>
             ))}
