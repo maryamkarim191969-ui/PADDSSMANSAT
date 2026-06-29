@@ -39,7 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         .find((i) => pathname.startsWith(i.to));
       return match
         ? { title: match.label, subtitle: "" }
-        : { title: "SIPASTERA", subtitle: "" };
+        : { title: "PADDS SMANSAT", subtitle: "" };
     })();
 
   return (

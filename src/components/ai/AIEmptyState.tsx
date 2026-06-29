@@ -11,10 +11,10 @@ export function AIEmptyState() {
           <LifeBuoy className="h-3.5 w-3.5" />
         </span>
       </div>
-      <h3 className="mt-5 text-lg font-semibold text-foreground">Selamat datang di Asisten SIPASTERA</h3>
+      <h3 className="mt-5 text-lg font-semibold text-foreground">Selamat datang di Asisten PADDS SMANSAT</h3>
       <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
         Saya siap membantu Anda memahami fungsi setiap modul, cara menggunakan
-        fitur, serta alur kerja pengarsipan pada platform SIPASTERA. Silakan
+        fitur, serta alur kerja pengarsipan pada platform PADDS SMANSAT. Silakan
         ajukan pertanyaan kapan saja.
       </p>
     </div>

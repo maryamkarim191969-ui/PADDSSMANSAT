@@ -23,7 +23,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/user")({
-  head: () => ({ meta: [{ title: "Manajemen User — SIPASTERA" }] }),
+  head: () => ({ meta: [{ title: "Manajemen User — PADDS SMANSAT" }] }),
   component: UserPage,
 });
 
@@ -181,7 +181,7 @@ function UserPage() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-foreground">Manajemen User</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Kelola seluruh akun pengguna SIPASTERA, role, dan status aksesnya.
+              Kelola seluruh akun pengguna PADDS SMANSAT, role, dan status aksesnya.
               {currentUser?.role !== "Admin" && (
                 <span className="ml-1 text-xs italic text-muted-foreground/80">
                   (Hanya Admin yang dapat melihat seluruh pengguna.)

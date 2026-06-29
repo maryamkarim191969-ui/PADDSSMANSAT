@@ -130,7 +130,7 @@ export function AIChat({ conversation, onUpdate, onStart, seedPrompt }: Props) {
 
   const hasMessages = messages.length > 0;
   const errorMessage = error
-    ? error.message || "Tidak dapat menghubungi Asisten SIPASTERA. Mohon coba lagi."
+    ? error.message || "Tidak dapat menghubungi Asisten PADDS SMANSAT. Mohon coba lagi."
     : null;
 
   return (

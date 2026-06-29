@@ -10,12 +10,12 @@ type ChatRequestBody = {
 };
 
 /**
- * Endpoint chat untuk SIPASTERA AI Assistant (Digital Customer Assistant).
+ * Endpoint chat untuk PADDS SMANSAT AI Assistant (Digital Customer Assistant).
  *
  * Endpoint ini tidak menyentuh database, tidak menggunakan tool calling,
  * dan tidak bergantung pada peran/permission pengguna. Tanggung jawabnya
  * hanya melakukan streaming jawaban model berdasarkan system prompt dan
- * knowledge base platform SIPASTERA.
+ * knowledge base platform PADDS SMANSAT.
  */
 export const Route = createFileRoute("/api/ai-chat")({
   server: {
@@ -53,10 +53,10 @@ export const Route = createFileRoute("/api/ai-chat")({
             onError: (error) => {
               const msg = error instanceof Error ? error.message : String(error);
               if (msg.includes("429"))
-                return "Layanan Asisten SIPASTERA sedang sibuk. Mohon coba lagi beberapa saat kemudian.";
+                return "Layanan Asisten PADDS SMANSAT sedang sibuk. Mohon coba lagi beberapa saat kemudian.";
               if (msg.includes("402"))
-                return "Kuota layanan Asisten SIPASTERA telah habis. Mohon hubungi pengelola platform untuk menambah kuota.";
-              return "Mohon maaf, terjadi gangguan saat menghubungi layanan Asisten SIPASTERA. Silakan coba lagi.";
+                return "Kuota layanan Asisten PADDS SMANSAT telah habis. Mohon hubungi pengelola platform untuk menambah kuota.";
+              return "Mohon maaf, terjadi gangguan saat menghubungi layanan Asisten PADDS SMANSAT. Silakan coba lagi.";
             },
           });
         } catch (err) {

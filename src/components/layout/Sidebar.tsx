@@ -39,7 +39,7 @@ export function Sidebar({ open, collapsed, onClose, onToggleCollapse }: SidebarP
             </div>
             {!collapsed && (
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold tracking-wide text-white">SIPASTERA</p>
+                <p className="truncate text-sm font-bold tracking-wide text-white">PADDS SMANSAT</p>
                 <p className="truncate text-[11px] text-sidebar-foreground/70">
                   Pengarsipan Sekolah Terpadu
                 </p>

@@ -1,7 +1,7 @@
 /**
- * SIPASTERA AI Assistant — Knowledge Base
+ * PADDS SMANSAT AI Assistant — Knowledge Base
  *
- * Sumber pengetahuan resmi untuk Digital Customer Assistant SIPASTERA.
+ * Sumber pengetahuan resmi untuk Digital Customer Assistant PADDS SMANSAT.
  * Struktur ini dibuat agar mudah diperluas pada sprint berikutnya
  * (penambahan FAQ, panduan modul, istilah baru, dsb.) tanpa perlu
  * mengubah arsitektur AI Assistant maupun endpoint chat.
@@ -46,7 +46,7 @@ export type KBTerm = {
 /* ------------------------------------------------------------------ */
 
 export const PLATFORM_PROFILE = {
-  name: "SIPASTERA",
+  name: "PADDS SMANSAT",
   longName: "Sistem Pengarsipan Sekolah Terpadu",
   tagline:
     "Platform pengelolaan arsip digital yang membantu sekolah dan instansi mengelola dokumen secara modern, terstruktur, aman, dan efisien.",
@@ -75,7 +75,7 @@ export const PLATFORM_PROFILE = {
     "Backup, log aktivitas, dan manajemen pengguna dalam satu platform.",
   ],
   developer:
-    "SIPASTERA dikembangkan sebagai solusi digital untuk membantu proses pengelolaan arsip sekolah maupun instansi menjadi lebih modern, terstruktur, efisien, dan mudah digunakan. Platform ini dibangun oleh tim pengembang SIPASTERA sebagai bagian dari inovasi digitalisasi administrasi.",
+    "PADDS SMANSAT dikembangkan sebagai solusi digital untuk membantu proses pengelolaan arsip sekolah maupun instansi menjadi lebih modern, terstruktur, efisien, dan mudah digunakan. Platform ini dibangun oleh tim pengembang PADDS SMANSAT sebagai bagian dari inovasi digitalisasi administrasi.",
   roadmap: [
     "Penguatan AI Document Intelligence pada modul Upload Arsip.",
     "Pencarian berbasis makna (semantic search) lintas dokumen.",
@@ -275,7 +275,7 @@ export const KB_MODULES: KBModule[] = [
     key: "ai-assistant",
     name: "AI Assistant",
     purpose:
-      "Pusat bantuan resmi SIPASTERA. AI Assistant membantu pengguna memahami fungsi modul, cara penggunaan fitur, alur kerja platform, serta menjawab pertanyaan seputar SIPASTERA.",
+      "Pusat bantuan resmi PADDS SMANSAT. AI Assistant membantu pengguna memahami fungsi modul, cara penggunaan fitur, alur kerja platform, serta menjawab pertanyaan seputar PADDS SMANSAT.",
     location: "Sidebar → AI Assistant",
     howToUse: [
       "Buka menu AI Assistant.",
@@ -294,7 +294,7 @@ export const KB_MODULES: KBModule[] = [
 
 export const AI_DOCUMENT_INTELLIGENCE = {
   summary:
-    "AI Document Intelligence adalah kecerdasan operasional SIPASTERA yang berada di dalam modul Upload Arsip. Tugasnya membantu operator mempercepat proses pengarsipan dengan membaca isi dokumen dan mengisi metadata secara otomatis.",
+    "AI Document Intelligence adalah kecerdasan operasional PADDS SMANSAT yang berada di dalam modul Upload Arsip. Tugasnya membantu operator mempercepat proses pengarsipan dengan membaca isi dokumen dan mengisi metadata secara otomatis.",
   capabilities: [
     "Membaca isi dokumen yang diunggah.",
     "Melakukan OCR untuk dokumen hasil pemindaian bila diperlukan.",
@@ -314,19 +314,19 @@ export const AI_DOCUMENT_INTELLIGENCE = {
 
 export const KB_FAQ: KBFaq[] = [
   {
-    question: "Apa itu SIPASTERA?",
+    question: "Apa itu PADDS SMANSAT?",
     answer:
-      "SIPASTERA adalah platform pengelolaan arsip digital yang membantu sekolah maupun instansi mengelola dokumen secara modern, terstruktur, aman, dan efisien.",
+      "PADDS SMANSAT adalah platform pengelolaan arsip digital yang membantu sekolah maupun instansi mengelola dokumen secara modern, terstruktur, aman, dan efisien.",
   },
   {
-    question: "Apa peran AI Assistant pada SIPASTERA?",
+    question: "Apa peran AI Assistant pada PADDS SMANSAT?",
     answer:
       "AI Assistant berperan sebagai Digital Customer Assistant. AI Assistant membantu seluruh pengguna memahami fungsi modul, cara penggunaan fitur, dan alur kerja platform. AI Assistant tidak menjalankan tindakan operasional terhadap data arsip.",
   },
   {
     question: "Apa perbedaan AI Assistant dan AI Document Intelligence?",
     answer:
-      "AI Document Intelligence berada di modul Upload Arsip dan bertugas membaca dokumen serta membantu pengisian metadata secara otomatis. AI Assistant berperan sebagai pusat bantuan resmi platform yang menjelaskan cara penggunaan SIPASTERA.",
+      "AI Document Intelligence berada di modul Upload Arsip dan bertugas membaca dokumen serta membantu pengisian metadata secara otomatis. AI Assistant berperan sebagai pusat bantuan resmi platform yang menjelaskan cara penggunaan PADDS SMANSAT.",
   },
   {
     question: "Bagaimana cara mengunggah arsip baru?",
@@ -344,7 +344,7 @@ export const KB_FAQ: KBFaq[] = [
       "Ya. Modul Retensi membantu pengguna memantau arsip yang aktif, mendekati masa retensi, atau yang sudah siap untuk ditindaklanjuti sesuai kebijakan pengelolaan.",
   },
   {
-    question: "Apakah data SIPASTERA dapat dicadangkan?",
+    question: "Apakah data PADDS SMANSAT dapat dicadangkan?",
     answer:
       "Ya. Modul Backup digunakan untuk membuat salinan data arsip dan metadata sebagai langkah pengamanan. Backup juga digunakan untuk proses restore bila diperlukan.",
   },
@@ -445,7 +445,7 @@ export function buildKnowledgeBlock(): string {
   const termsText = KB_TERMS.map((t) => `${t.term}: ${t.definition}`).join("\n");
 
   return [
-    "Pengetahuan Platform SIPASTERA",
+    "Pengetahuan Platform PADDS SMANSAT",
     "",
     `Nama Platform: ${PLATFORM_PROFILE.name} (${PLATFORM_PROFILE.longName})`,
     `Deskripsi: ${PLATFORM_PROFILE.tagline}`,

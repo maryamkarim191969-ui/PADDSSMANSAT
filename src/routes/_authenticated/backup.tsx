@@ -21,7 +21,7 @@ import {
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 export const Route = createFileRoute("/_authenticated/backup")({
-  head: () => ({ meta: [{ title: "Backup & Restore — SIPASTERA" }] }),
+  head: () => ({ meta: [{ title: "Backup & Restore — PADDS SMANSAT" }] }),
   component: BackupPage,
 });
 
@@ -130,7 +130,7 @@ function BackupPage() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-foreground">Backup & Restore</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Lindungi seluruh data arsip dan konfigurasi SIPASTERA.
+              Lindungi seluruh data arsip dan konfigurasi PADDS SMANSAT.
             </p>
           </div>
         </div>

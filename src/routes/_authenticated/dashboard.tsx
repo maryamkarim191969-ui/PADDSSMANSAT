@@ -12,8 +12,8 @@ import { useDashboardOverview } from "@/hooks/use-dashboard";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — SIPASTERA" },
-      { name: "description", content: "Ringkasan sistem arsip digital SIPASTERA." },
+      { title: "Dashboard — PADDS SMANSAT" },
+      { name: "description", content: "Ringkasan sistem arsip digital PADDS SMANSAT." },
     ],
   }),
   component: DashboardPage,

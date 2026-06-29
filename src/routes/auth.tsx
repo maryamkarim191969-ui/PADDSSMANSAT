@@ -9,11 +9,11 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "SIPASTERA | Login" },
+      { title: "PADDS SMANSAT | Login" },
       {
         name: "description",
         content:
-          "Masuk ke SIPASTERA — Sistem Informasi Pengarsipan Sekolah Terpadu berbasis QR Code dan AI.",
+          "Masuk ke PADDS SMANSAT — Sistem Informasi Pengarsipan Sekolah Terpadu berbasis QR Code dan AI.",
       },
     ],
     links: [
@@ -123,7 +123,7 @@ function AuthPage() {
       <div className="ambient" />
       <main className="wrap">
         <div className="grid">
-          <section className="hero" aria-label="Hero SIPASTERA">
+          <section className="hero" aria-label="Hero PADDS SMANSAT">
             <div className="brand">
               <div className="mark" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none">
@@ -143,7 +143,7 @@ function AuthPage() {
                 </svg>
               </div>
               <div className="brand-title">
-                <div className="name">SIPASTERA</div>
+                <div className="name">PADDS SMANSAT</div>
                 <div className="tagline">Pengarsipan Sekolah Terpadu</div>
               </div>
             </div>
@@ -153,7 +153,7 @@ function AuthPage() {
               <span className="accent"> Teknologi Modern</span>
             </h1>
             <p>
-              SIPASTERA adalah solusi pengarsipan digital terintegrasi dengan AI Assistant,
+              PADDS SMANSAT adalah solusi pengarsipan digital terintegrasi dengan AI Assistant,
               QR Code, dan sistem keamanan berlapis untuk mendukung transformasi digital
               sekolah.
             </p>
@@ -164,13 +164,13 @@ function AuthPage() {
                 <img
                   loading="eager"
                   decoding="async"
-                  alt="Ilustrasi SIPASTERA"
+                  alt="Ilustrasi PADDS SMANSAT"
                   src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=Ultra%20clean%20isometric%203D%20illustration%2C%20blue%20and%20white%20glassmorphism%20tech%20style%2C%20cloud%20storage%20platform%20with%20digital%20archive%20folders%2C%20connected%20small%20pedestals%20showing%20AI%20assistant%20robot%2C%20QR%20code%20tile%2C%20and%20secure%20shield%20badge%2C%20soft%20shadows%2C%20bright%20studio%20lighting%2C%20minimal%20background%2C%20high%20detail%2C%20premium%20UI%20landing%20page%20hero&image_size=landscape_4_3"
                 />
               </div>
             </div>
 
-            <div className="features" aria-label="Fitur SIPASTERA">
+            <div className="features" aria-label="Fitur PADDS SMANSAT">
               <div className="feature">
                 <div className="ic" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none">
@@ -264,12 +264,12 @@ function AuthPage() {
           </section>
 
           <div className="right">
-            <section className="auth" aria-label="Kartu Login SIPASTERA">
+            <section className="auth" aria-label="Kartu Login PADDS SMANSAT">
               <div className="glow-card">
                 <div className="card-inner">
                   <div className="card-title">Selamat Datang Kembali</div>
                   <div className="card-sub">
-                    Masuk ke akun SIPASTERA Anda untuk melanjutkan
+                    Masuk ke akun PADDS SMANSAT Anda untuk melanjutkan
                   </div>
 
                   <form className="form" id="loginForm" onSubmit={handleSubmit} noValidate>
@@ -420,7 +420,7 @@ function AuthPage() {
                         type="button"
                         onClick={() =>
                           toast.info(
-                            "Hubungi administrator SIPASTERA untuk memulihkan password Anda.",
+                            "Hubungi administrator PADDS SMANSAT untuk memulihkan password Anda.",
                           )
                         }
                       >
@@ -532,12 +532,12 @@ function AuthPage() {
                       </svg>
                     </div>
                     <p>
-                      SIPASTERA dilengkapi dengan sistem keamanan berlapis untuk menjaga
+                      PADDS SMANSAT dilengkapi dengan sistem keamanan berlapis untuk menjaga
                       data arsip sekolah tetap aman.
                     </p>
                   </div>
 
-                  <div className="footer">© 2025 SIPASTERA. Semua hak dilindungi.</div>
+                  <div className="footer">© 2025 PADDS SMANSAT. Semua hak dilindungi.</div>
                 </div>
               </div>
             </section>

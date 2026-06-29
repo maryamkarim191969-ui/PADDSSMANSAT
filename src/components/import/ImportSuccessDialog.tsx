@@ -32,7 +32,7 @@ export function ImportSuccessDialog({
           </DialogTitle>
         </DialogHeader>
         <p className="text-center text-sm text-muted-foreground">
-          Seluruh dokumen telah dimigrasi ke dalam sistem SIPASTERA.
+          Seluruh dokumen telah dimigrasi ke dalam sistem PADDS SMANSAT.
         </p>
         <DialogFooter className="sm:justify-center">
           <button

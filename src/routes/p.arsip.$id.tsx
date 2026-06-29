@@ -16,11 +16,11 @@ export const Route = createFileRoute("/p/arsip/$id")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Arsip Publik — SIPASTERA" },
+      { title: "Arsip Publik — PADDS SMANSAT" },
       {
         name: "description",
         content:
-          "Halaman publik arsip SIPASTERA — diakses melalui QR Code atau tautan langsung.",
+          "Halaman publik arsip PADDS SMANSAT — diakses melalui QR Code atau tautan langsung.",
       },
     ],
   }),
@@ -139,7 +139,7 @@ function PublicArsipPage() {
 
         <div className="flex items-center gap-2 border-t border-border bg-muted/30 px-6 py-3 text-[11px] text-muted-foreground">
           <ShieldCheck className="h-3.5 w-3.5" />
-          Halaman publik SIPASTERA — diakses melalui QR Code resmi arsip.
+          Halaman publik PADDS SMANSAT — diakses melalui QR Code resmi arsip.
         </div>
       </div>
     </Shell>

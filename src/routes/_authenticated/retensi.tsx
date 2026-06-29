@@ -18,7 +18,7 @@ import { useArsipFacets } from "@/hooks/use-arsip";
 export const Route = createFileRoute("/_authenticated/retensi")({
   head: () => ({
     meta: [
-      { title: "Retensi Dokumen — SIPASTERA" },
+      { title: "Retensi Dokumen — PADDS SMANSAT" },
       { name: "description", content: "Pantau masa simpan dan jadwal retensi dokumen arsip." },
     ],
   }),

@@ -21,7 +21,7 @@ import { useArsipFacets } from "@/hooks/use-arsip";
 export const Route = createFileRoute("/_authenticated/statistik")({
   head: () => ({
     meta: [
-      { title: "Statistik & Laporan — SIPASTERA" },
+      { title: "Statistik & Laporan — PADDS SMANSAT" },
       { name: "description", content: "Visualisasi data arsip sekolah secara profesional." },
     ],
   }),

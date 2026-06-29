@@ -20,10 +20,10 @@ import {
 export const Route = createFileRoute("/_authenticated/import")({
   head: () => ({
     meta: [
-      { title: "Import Arsip — SIPASTERA" },
+      { title: "Import Arsip — PADDS SMANSAT" },
       {
         name: "description",
-        content: "Migrasi arsip lama secara massal ke dalam sistem SIPASTERA.",
+        content: "Migrasi arsip lama secara massal ke dalam sistem PADDS SMANSAT.",
       },
     ],
   }),

@@ -4,7 +4,7 @@ import { UploadWorkspace } from "@/features/upload-intelligence/components/Uploa
 export const Route = createFileRoute("/_authenticated/upload")({
   head: () => ({
     meta: [
-      { title: "Upload Arsip — SIPASTERA" },
+      { title: "Upload Arsip — PADDS SMANSAT" },
       {
         name: "description",
         content:

@@ -9,7 +9,7 @@ import type { Permission } from "@/lib/permissions";
 const QK = ["current-user"] as const;
 
 /**
- * Single source of truth for the signed-in user across every SIPASTERA module.
+ * Single source of truth for the signed-in user across every PADDS SMANSAT module.
  * Backed by TanStack Query so all consumers share one cached identity.
  */
 export function useCurrentUser() {

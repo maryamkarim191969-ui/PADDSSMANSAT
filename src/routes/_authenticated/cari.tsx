@@ -36,7 +36,7 @@ import { getDownloadUrl } from "@/lib/storage.functions";
 export const Route = createFileRoute("/_authenticated/cari")({
   head: () => ({
     meta: [
-      { title: "Cari Arsip — SIPASTERA" },
+      { title: "Cari Arsip — PADDS SMANSAT" },
       {
         name: "description",
         content:

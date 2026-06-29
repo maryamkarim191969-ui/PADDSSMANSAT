@@ -17,7 +17,7 @@ import { getSystemSettings, saveSystemSettings } from "@/lib/system.functions";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 export const Route = createFileRoute("/_authenticated/pengaturan")({
-  head: () => ({ meta: [{ title: "Pengaturan — SIPASTERA" }] }),
+  head: () => ({ meta: [{ title: "Pengaturan — PADDS SMANSAT" }] }),
   component: SettingsPage,
 });
 
@@ -90,7 +90,7 @@ function SettingsPage() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-foreground">Pengaturan Sistem</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Pusat konfigurasi SIPASTERA untuk profil sekolah, tampilan, keamanan, dan lainnya.
+              Pusat konfigurasi PADDS SMANSAT untuk profil sekolah, tampilan, keamanan, dan lainnya.
             </p>
           </div>
         </div>

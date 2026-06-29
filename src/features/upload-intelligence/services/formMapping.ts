@@ -33,7 +33,7 @@ function yearFromDate(d: string | null): string {
 }
 
 /**
- * Build the SIPASTERA form values from AI-extracted metadata.
+ * Build the PADDS SMANSAT form values from AI-extracted metadata.
  * Only fields actually present in the document are filled — missing fields
  * stay empty so the operator can complete them manually.
  *

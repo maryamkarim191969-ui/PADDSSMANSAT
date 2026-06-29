@@ -22,7 +22,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 export const Route = createFileRoute("/_authenticated/log-aktivitas")({
   head: () => ({
     meta: [
-      { title: "Log Aktivitas — SIPASTERA" },
+      { title: "Log Aktivitas — PADDS SMANSAT" },
       { name: "description", content: "Riwayat aktivitas pengguna di dalam sistem arsip." },
     ],
   }),

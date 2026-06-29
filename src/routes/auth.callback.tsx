@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth/callback")({
   ssr: false,
-  head: () => ({ meta: [{ title: "SIPASTERA | Memproses login…" }] }),
+  head: () => ({ meta: [{ title: "PADDS SMANSAT | Memproses login…" }] }),
   component: AuthCallback,
 });
 
