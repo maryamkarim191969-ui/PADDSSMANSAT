@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { UploadCloud } from "lucide-react";
+import { Camera, UploadCloud } from "lucide-react";
 import { ACCEPT_ATTR, MAX_FILES, MAX_FILE_SIZE_BYTES } from "../constants";
 
 export function DropZone({
@@ -10,6 +10,7 @@ export function DropZone({
   remainingSlots: number;
 }) {
   const ref = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const [drag, setDrag] = useState(false);
 
   function handle(list: FileList | null) {
@@ -21,7 +22,7 @@ export function DropZone({
   const disabled = remainingSlots <= 0;
 
   return (
-    <div>
+    <div className="space-y-3">
       <button
         type="button"
         disabled={disabled}
@@ -62,7 +63,7 @@ export function DropZone({
           dari perangkat
         </p>
         <p className="text-[11px] text-muted-foreground">
-          PDF, DOC, DOCX, XLS, XLSX, CSV, TXT, PNG, JPG • Maks{" "}
+          PDF, DOC, DOCX, XLS, XLSX, CSV, TXT, PNG, JPG (foto dokumen) • Maks{" "}
           {MAX_FILE_SIZE_BYTES / (1024 * 1024)} MB / file • Hingga {MAX_FILES} file
         </p>
         <input
@@ -74,6 +75,25 @@ export function DropZone({
           onChange={(e) => handle(e.target.files)}
         />
       </button>
+      <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-muted-foreground">
+        <span>Tidak memiliki PDF? Ambil foto dokumen langsung:</span>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => cameraRef.current?.click()}
+          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[11px] font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Camera className="h-3.5 w-3.5" /> Ambil dari kamera
+        </button>
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => handle(e.target.files)}
+        />
+      </div>
     </div>
   );
 }

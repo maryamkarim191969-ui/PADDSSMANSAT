@@ -14,6 +14,7 @@ import {
   DatabaseBackup,
   Settings,
   QrCode,
+  Info,
   type LucideIcon,
 } from "lucide-react";
 
@@ -62,6 +63,7 @@ export const navigation: NavSection[] = [
       { label: "Manajemen User", to: "/user", icon: Users },
       { label: "Backup & Restore", to: "/backup", icon: DatabaseBackup },
       { label: "Pengaturan", to: "/pengaturan", icon: Settings },
+      { label: "Pusat Informasi", to: "/info", icon: Info },
     ],
   },
 ];

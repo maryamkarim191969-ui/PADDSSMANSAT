@@ -29,7 +29,7 @@ export function Topbar({ title, subtitle, onOpenSidebar }: TopbarProps) {
       await qc.cancelQueries();
       qc.clear();
       await supabase.auth.signOut();
-      toast.success("Anda telah keluar dari SIPASTERA.");
+      toast.success("Anda telah keluar dari PADDS SMANSAT.");
       await navigate({ to: "/auth", replace: true });
     } catch (err) {
       console.error("[topbar] signOut", err);

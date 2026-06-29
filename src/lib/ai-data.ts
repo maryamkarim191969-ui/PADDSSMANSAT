@@ -25,10 +25,10 @@ export type AIConversation = {
 /* ------------------------------------------------------------------ */
 
 export const suggestedPrompts: string[] = [
-  "Apa itu SIPASTERA dan apa manfaatnya bagi sekolah?",
+  "Apa itu PADDS SMANSAT dan apa manfaatnya bagi sekolah?",
   "Bagaimana cara mengunggah arsip menggunakan AI Document Intelligence?",
   "Bagaimana cara mencari arsip lama pada platform?",
-  "Apa fungsi modul Retensi pada SIPASTERA?",
+  "Apa fungsi modul Retensi pada PADDS SMANSAT?",
   "Bagaimana cara membuat dan menggunakan QR Code arsip?",
   "Jelaskan langkah-langkah melakukan backup data.",
 ];
@@ -39,7 +39,7 @@ export type SuggestedCommand = {
 };
 
 export const suggestedCommands: SuggestedCommand[] = [
-  { group: "Panduan", prompt: "Jelaskan alur kerja umum pengarsipan pada SIPASTERA." },
+  { group: "Panduan", prompt: "Jelaskan alur kerja umum pengarsipan pada PADDS SMANSAT." },
   { group: "Panduan", prompt: "Bagaimana cara mengelola kategori arsip dengan rapi?" },
   { group: "Modul", prompt: "Apa fungsi modul Lokasi Fisik dan kapan harus digunakan?" },
   { group: "Modul", prompt: "Apa saja yang dapat dilihat pada Dashboard dan Statistik?" },
@@ -74,17 +74,17 @@ export type QuickAction = {
 export const quickActions: QuickAction[] = [
   {
     key: "intro",
-    title: "Mengenal SIPASTERA",
+    title: "Mengenal PADDS SMANSAT",
     description: "Penjelasan singkat tentang platform dan tujuannya.",
     icon: "intro",
-    prompt: "Tolong jelaskan apa itu SIPASTERA dan manfaatnya bagi sekolah serta instansi.",
+    prompt: "Tolong jelaskan apa itu PADDS SMANSAT dan manfaatnya bagi sekolah serta instansi.",
   },
   {
     key: "modules",
     title: "Panduan Modul",
     description: "Penjelasan fungsi setiap menu pada platform.",
     icon: "modules",
-    prompt: "Tolong jelaskan fungsi seluruh modul utama pada SIPASTERA.",
+    prompt: "Tolong jelaskan fungsi seluruh modul utama pada PADDS SMANSAT.",
   },
   {
     key: "upload",
@@ -98,21 +98,21 @@ export const quickActions: QuickAction[] = [
     title: "Cara Mencari Arsip",
     description: "Panduan pencarian arsip secara efektif.",
     icon: "search",
-    prompt: "Bagaimana cara melakukan pencarian arsip yang efektif pada SIPASTERA?",
+    prompt: "Bagaimana cara melakukan pencarian arsip yang efektif pada PADDS SMANSAT?",
   },
   {
     key: "workflow",
     title: "Alur Pengarsipan",
     description: "Alur kerja pengarsipan dari awal sampai selesai.",
     icon: "workflow",
-    prompt: "Jelaskan alur kerja umum pengarsipan pada SIPASTERA secara berurutan.",
+    prompt: "Jelaskan alur kerja umum pengarsipan pada PADDS SMANSAT secara berurutan.",
   },
   {
     key: "faq",
     title: "Pertanyaan Umum",
     description: "Jawaban atas pertanyaan yang sering diajukan.",
     icon: "faq",
-    prompt: "Apa saja pertanyaan umum dari pengguna baru SIPASTERA dan jawabannya?",
+    prompt: "Apa saja pertanyaan umum dari pengguna baru PADDS SMANSAT dan jawabannya?",
   },
   {
     key: "terms",
@@ -126,7 +126,7 @@ export const quickActions: QuickAction[] = [
     title: "Solusi Kendala",
     description: "Saran solusi untuk kendala umum saat penggunaan.",
     icon: "support",
-    prompt: "Apa solusi untuk kendala umum yang sering dialami pengguna saat menggunakan SIPASTERA?",
+    prompt: "Apa solusi untuk kendala umum yang sering dialami pengguna saat menggunakan PADDS SMANSAT?",
   },
 ];
 
@@ -150,7 +150,7 @@ export const aiCapabilities: AICapability[] = [
   {
     key: "assistant",
     title: "Digital Customer Assistant",
-    summary: "Pusat bantuan resmi platform SIPASTERA.",
+    summary: "Pusat bantuan resmi platform PADDS SMANSAT.",
     status: "Siap",
     icon: "knowledge",
     bullets: [
@@ -188,7 +188,7 @@ export const aiCapabilities: AICapability[] = [
   {
     key: "knowledge",
     title: "Smart Knowledge Base",
-    summary: "Perluasan pengetahuan resmi platform SIPASTERA.",
+    summary: "Perluasan pengetahuan resmi platform PADDS SMANSAT.",
     status: "Roadmap",
     icon: "knowledge",
     bullets: [

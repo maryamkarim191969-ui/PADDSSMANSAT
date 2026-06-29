@@ -9,7 +9,7 @@ export const Route = createFileRoute("/")({
 
 function IndexRedirect() {
   const navigate = useNavigate();
-  const [message, setMessage] = useState("Memuat SIPASTERA…");
+  const [message, setMessage] = useState("Memuat PADDS SMANSAT…");
 
   useEffect(() => {
     let active = true;

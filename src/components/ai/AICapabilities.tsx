@@ -20,7 +20,7 @@ export function AICapabilities() {
       <div className="mb-3">
         <p className="text-sm font-semibold text-foreground">AI Core Capabilities</p>
         <p className="text-xs text-muted-foreground">
-          Fondasi kecerdasan SIPASTERA — siap untuk integrasi penuh berikutnya.
+          Fondasi kecerdasan PADDS SMANSAT — siap untuk integrasi penuh berikutnya.
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">

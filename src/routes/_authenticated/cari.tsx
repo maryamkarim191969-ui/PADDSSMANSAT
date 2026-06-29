@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Arsip } from "@/lib/arsip-data";
@@ -14,6 +14,7 @@ import { SearchError } from "@/components/search/SearchError";
 import { RecentSearch } from "@/components/search/RecentSearch";
 import { PopularSearch } from "@/components/search/PopularSearch";
 import { AIQuickSearch } from "@/components/search/AIQuickSearch";
+import { AISearchPanel } from "@/components/search/AISearchPanel";
 import { ArsipDetail } from "@/components/arsip/ArsipDetail";
 import { ArsipPreview } from "@/components/arsip/ArsipPreview";
 import {
@@ -36,7 +37,7 @@ import { getDownloadUrl } from "@/lib/storage.functions";
 export const Route = createFileRoute("/_authenticated/cari")({
   head: () => ({
     meta: [
-      { title: "Cari Arsip — SIPASTERA" },
+      { title: "Cari Arsip — PADDS SMANSAT" },
       {
         name: "description",
         content:
@@ -48,6 +49,7 @@ export const Route = createFileRoute("/_authenticated/cari")({
 });
 
 function CariPage() {
+  const [mode, setMode] = useState<"standard" | "ai">("standard");
   const [query, setQuery] = useState("");
   const [committed, setCommitted] = useState("");
   const [kategori, setKategori] = useState("all");
@@ -157,6 +159,35 @@ function CariPage() {
 
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
+      <div className="inline-flex rounded-xl border border-border bg-card p-1 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setMode("standard")}
+          className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition-colors ${
+            mode === "standard"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Search className="h-3.5 w-3.5" /> Pencarian Standar
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("ai")}
+          className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition-colors ${
+            mode === "ai"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Sparkles className="h-3.5 w-3.5" /> AI Document Search
+        </button>
+      </div>
+
+      {mode === "ai" ? (
+        <AISearchPanel actions={actions} />
+      ) : (
+      <>
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
         <div className="flex items-start gap-3">
           <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
@@ -238,6 +269,8 @@ function CariPage() {
             />
           )}
         </>
+      )}
+      </>
       )}
 
       <ArsipDetail

@@ -11,7 +11,7 @@ import { useAIConversations } from "@/hooks/use-ai-conversations";
 import type { AIConversation } from "@/lib/ai-data";
 
 export const Route = createFileRoute("/_authenticated/ai-assistant")({
-  head: () => ({ meta: [{ title: "SIPASTERA AI Assistant — Pusat Bantuan Platform" }] }),
+  head: () => ({ meta: [{ title: "PADDS SMANSAT AI Assistant — Pusat Bantuan Platform" }] }),
   component: AIAssistantPage,
 });
 
@@ -92,13 +92,13 @@ function AIAssistantPage() {
             </div>
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-wider text-white/70">
-                SIPASTERA AI Assistant
+                PADDS SMANSAT AI Assistant
               </p>
               <h2 className="mt-0.5 text-2xl font-bold tracking-tight sm:text-3xl">
                 Pusat Bantuan Platform
               </h2>
               <p className="mt-1 max-w-2xl text-sm text-white/80">
-                Asisten resmi SIPASTERA yang membantu Anda memahami fungsi
+                Asisten resmi PADDS SMANSAT yang membantu Anda memahami fungsi
                 setiap modul, cara penggunaan fitur, serta alur kerja
                 pengarsipan pada platform.
               </p>
@@ -109,7 +109,7 @@ function AIAssistantPage() {
               <LifeBuoy className="h-3.5 w-3.5" /> Digital Customer Assistant
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-medium backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5" /> Knowledge Base SIPASTERA
+              <Sparkles className="h-3.5 w-3.5" /> Knowledge Base PADDS SMANSAT
             </span>
           </div>
         </div>
@@ -124,7 +124,7 @@ function AIAssistantPage() {
           <div>
             <h3 className="text-sm font-semibold text-foreground">Topik Bantuan</h3>
             <p className="text-xs text-muted-foreground">
-              Pilih topik untuk mendapatkan penjelasan singkat dari Asisten SIPASTERA.
+              Pilih topik untuk mendapatkan penjelasan singkat dari Asisten PADDS SMANSAT.
             </p>
           </div>
         </div>
@@ -165,7 +165,7 @@ function AIAssistantPage() {
         </div>
       </div>
 
-      {/* Capabilities — posisi AI Assistant pada arsitektur SIPASTERA */}
+      {/* Capabilities — posisi AI Assistant pada arsitektur PADDS SMANSAT */}
       <AICapabilities />
     </div>
   );

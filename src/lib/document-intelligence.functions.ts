@@ -53,7 +53,7 @@ export type AnalyzeDocumentResult = {
   durations: { parse: number; llm: number; total: number };
 };
 
-const SYSTEM_PROMPT = `You are SIPASTERA Document Intelligence — an expert Indonesian school-archive analyst.
+const SYSTEM_PROMPT = `You are PADDS SMANSAT Document Intelligence — an expert Indonesian school-archive analyst.
 
 You read the SINGLE attached document and extract administrative metadata STRICTLY from its visible content. Follow these absolute rules:
 

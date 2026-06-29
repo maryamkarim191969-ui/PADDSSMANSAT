@@ -28,11 +28,11 @@ import {
 export const Route = createFileRoute("/_authenticated/arsip")({
   head: () => ({
     meta: [
-      { title: "Manajemen Arsip — SIPASTERA" },
+      { title: "Manajemen Arsip — PADDS SMANSAT" },
       {
         name: "description",
         content:
-          "Kelola seluruh dokumen arsip sekolah secara terpusat di SIPASTERA.",
+          "Kelola seluruh dokumen arsip sekolah secara terpusat di PADDS SMANSAT.",
       },
     ],
   }),

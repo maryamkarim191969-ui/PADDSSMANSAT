@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FileText, Sparkles, X } from "lucide-react";
+import { AlertTriangle, FileText, Sparkles, X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -31,6 +31,7 @@ import type {
   QueuedFile,
 } from "../types";
 import { formatBytes } from "./utils";
+import type { DuplicateCandidate } from "@/lib/duplicate-check.functions";
 
 type Props = {
   item: QueuedFile | null;
@@ -39,6 +40,9 @@ type Props = {
   onChange: (id: string, patch: Partial<ArsipFormValues>) => void;
   onUpload: (id: string) => void;
   busy: boolean;
+  duplicates?: DuplicateCandidate[];
+  duplicateAck?: boolean;
+  onAcknowledgeDuplicate?: (id: string) => void;
 };
 
 export function ArsipFormSheet({
@@ -48,6 +52,9 @@ export function ArsipFormSheet({
   onChange,
   onUpload,
   busy,
+  duplicates = [],
+  duplicateAck = false,
+  onAcknowledgeDuplicate,
 }: Props) {
   const [errors, setErrors] = useState<ArsipFormErrors>({});
 
@@ -285,13 +292,74 @@ export function ArsipFormSheet({
               <X className="h-3.5 w-3.5 text-destructive/70" />
             </div>
           ) : null}
+
+          {duplicates.length > 0 ? (
+            <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold">
+                    Terdeteksi kemungkinan duplikat
+                  </p>
+                  <p className="mt-0.5 text-amber-800">
+                    Dokumen berikut memiliki kemiripan dengan data yang sedang
+                    Anda simpan. Tinjau terlebih dahulu, kemudian pilih
+                    Lanjutkan Simpan jika dokumen ini berbeda.
+                  </p>
+                  <ul className="mt-2 space-y-1.5">
+                    {duplicates.map((d) => (
+                      <li
+                        key={d.id}
+                        className="rounded-md border border-amber-200 bg-white/70 p-2"
+                      >
+                        <p className="font-medium text-foreground">{d.judul}</p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                          {d.nomorSurat} · {d.kategori} · {d.tahun} ·
+                          Kemiripan {(d.score * 100).toFixed(0)}%
+                          {d.reason === "exact-nomor"
+                            ? " (nomor surat sama)"
+                            : d.reason === "similar-judul"
+                              ? " (judul mirip)"
+                              : " (deskripsi mirip)"}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                  {!duplicateAck && item ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="mt-3"
+                      onClick={() => {
+                        onAcknowledgeDuplicate?.(item.id);
+                      }}
+                    >
+                      Lanjutkan Simpan
+                    </Button>
+                  ) : (
+                    <p className="mt-3 text-[11px] font-medium text-amber-900">
+                      Konfirmasi diterima — klik Simpan & Upload untuk
+                      menyimpan dokumen ini.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <SheetFooter className="gap-2 border-t border-border px-5 py-3 sm:gap-2">
           <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
             Tutup
           </Button>
-          <Button type="button" onClick={submit} disabled={busy || !item}>
+          <Button
+            type="button"
+            onClick={submit}
+            disabled={
+              busy || !item || (duplicates.length > 0 && !duplicateAck)
+            }
+          >
             Simpan & Upload
           </Button>
         </SheetFooter>

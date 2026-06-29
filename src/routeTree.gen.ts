@@ -24,6 +24,7 @@ import { Route as AuthenticatedPengaturanRouteImport } from './routes/_authentic
 import { Route as AuthenticatedLokasiFisikRouteImport } from './routes/_authenticated/lokasi-fisik'
 import { Route as AuthenticatedLogAktivitasRouteImport } from './routes/_authenticated/log-aktivitas'
 import { Route as AuthenticatedKategoriRouteImport } from './routes/_authenticated/kategori'
+import { Route as AuthenticatedInfoRouteImport } from './routes/_authenticated/info'
 import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCariRouteImport } from './routes/_authenticated/cari'
@@ -108,6 +109,11 @@ const AuthenticatedKategoriRoute = AuthenticatedKategoriRouteImport.update({
   path: '/kategori',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedInfoRoute = AuthenticatedInfoRouteImport.update({
+  id: '/info',
+  path: '/info',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedImportRoute = AuthenticatedImportRouteImport.update({
   id: '/import',
   path: '/import',
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/cari': typeof AuthenticatedCariRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/import': typeof AuthenticatedImportRoute
+  '/info': typeof AuthenticatedInfoRoute
   '/kategori': typeof AuthenticatedKategoriRoute
   '/log-aktivitas': typeof AuthenticatedLogAktivitasRoute
   '/lokasi-fisik': typeof AuthenticatedLokasiFisikRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/cari': typeof AuthenticatedCariRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/import': typeof AuthenticatedImportRoute
+  '/info': typeof AuthenticatedInfoRoute
   '/kategori': typeof AuthenticatedKategoriRoute
   '/log-aktivitas': typeof AuthenticatedLogAktivitasRoute
   '/lokasi-fisik': typeof AuthenticatedLokasiFisikRoute
@@ -202,6 +210,7 @@ export interface FileRoutesById {
   '/_authenticated/cari': typeof AuthenticatedCariRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/import': typeof AuthenticatedImportRoute
+  '/_authenticated/info': typeof AuthenticatedInfoRoute
   '/_authenticated/kategori': typeof AuthenticatedKategoriRoute
   '/_authenticated/log-aktivitas': typeof AuthenticatedLogAktivitasRoute
   '/_authenticated/lokasi-fisik': typeof AuthenticatedLokasiFisikRoute
@@ -227,6 +236,7 @@ export interface FileRouteTypes {
     | '/cari'
     | '/dashboard'
     | '/import'
+    | '/info'
     | '/kategori'
     | '/log-aktivitas'
     | '/lokasi-fisik'
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/cari'
     | '/dashboard'
     | '/import'
+    | '/info'
     | '/kategori'
     | '/log-aktivitas'
     | '/lokasi-fisik'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cari'
     | '/_authenticated/dashboard'
     | '/_authenticated/import'
+    | '/_authenticated/info'
     | '/_authenticated/kategori'
     | '/_authenticated/log-aktivitas'
     | '/_authenticated/lokasi-fisik'
@@ -405,6 +417,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKategoriRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/info': {
+      id: '/_authenticated/info'
+      path: '/info'
+      fullPath: '/info'
+      preLoaderRoute: typeof AuthenticatedInfoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/import': {
       id: '/_authenticated/import'
       path: '/import'
@@ -464,6 +483,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCariRoute: typeof AuthenticatedCariRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedImportRoute: typeof AuthenticatedImportRoute
+  AuthenticatedInfoRoute: typeof AuthenticatedInfoRoute
   AuthenticatedKategoriRoute: typeof AuthenticatedKategoriRoute
   AuthenticatedLogAktivitasRoute: typeof AuthenticatedLogAktivitasRoute
   AuthenticatedLokasiFisikRoute: typeof AuthenticatedLokasiFisikRoute
@@ -482,6 +502,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCariRoute: AuthenticatedCariRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedImportRoute: AuthenticatedImportRoute,
+  AuthenticatedInfoRoute: AuthenticatedInfoRoute,
   AuthenticatedKategoriRoute: AuthenticatedKategoriRoute,
   AuthenticatedLogAktivitasRoute: AuthenticatedLogAktivitasRoute,
   AuthenticatedLokasiFisikRoute: AuthenticatedLokasiFisikRoute,

@@ -52,7 +52,7 @@ export function AIInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKey}
-          placeholder="Tanyakan apa saja seputar arsip atau SIPASTERA..."
+          placeholder="Tanyakan apa saja seputar arsip atau PADDS SMANSAT..."
           rows={1}
           className="min-h-[40px] flex-1 resize-none bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
         />

@@ -2,6 +2,10 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { analyzeDocument } from "@/lib/document-intelligence.functions";
 import { uploadAndCreateArsip } from "@/lib/upload-arsip.functions";
+import {
+  checkArsipDuplicates,
+  type DuplicateCandidate,
+} from "@/lib/duplicate-check.functions";
 import { ARSIP_DEPENDENT_KEYS } from "@/lib/query-keys";
 import { validateBatch, validateSingleFile } from "../services/validation";
 import { buildField, emptyMetadata, needsReview } from "../services/metadataNormalizer";
@@ -23,8 +27,8 @@ function newId() {
   return `f_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-async function fileToBase64(file: File): Promise<string> {
-  const buf = await file.arrayBuffer();
+async function blobToBase64(blob: Blob): Promise<string> {
+  const buf = await blob.arrayBuffer();
   const bytes = new Uint8Array(buf);
   let binary = "";
   const CHUNK = 0x8000;
@@ -35,6 +39,54 @@ async function fileToBase64(file: File): Promise<string> {
     );
   }
   return btoa(binary);
+}
+
+/**
+ * For photo documents captured by phone cameras, downscale the long edge
+ * to 2200px and re-encode as JPEG before sending to the AI gateway and R2.
+ * Keeps payloads under the 5 MB limit while preserving OCR quality. PDFs
+ * and small images pass through untouched.
+ */
+async function normalizeImageIfNeeded(file: File): Promise<File> {
+  if (!file.type.startsWith("image/")) return file;
+  if (file.size <= 1.5 * 1024 * 1024) return file;
+  if (typeof document === "undefined") return file;
+  try {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error ?? new Error("read fail"));
+      r.readAsDataURL(file);
+    });
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new Error("decode fail"));
+      i.src = dataUrl;
+    });
+    const MAX_EDGE = 2200;
+    const scale = Math.min(1, MAX_EDGE / Math.max(img.width, img.height));
+    const w = Math.round(img.width * scale);
+    const h = Math.round(img.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(img, 0, 0, w, h);
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob((b) => resolve(b), "image/jpeg", 0.86),
+    );
+    if (!blob) return file;
+    const ext = file.name.replace(/\.[^.]+$/, "") || "photo";
+    return new File([blob], `${ext}.jpg`, { type: "image/jpeg" });
+  } catch {
+    return file;
+  }
+}
+
+async function fileToBase64(file: File): Promise<string> {
+  return blobToBase64(file);
 }
 
 async function readAsTextSafe(file: File): Promise<string | undefined> {
@@ -88,6 +140,10 @@ export function useUploadQueue(masters: {
   const [isAnalysing, setAnalysing] = useState(false);
   const [isUploading, setUploading] = useState(false);
   const [summary, setSummary] = useState<WorkspaceSummary | null>(null);
+  const [duplicates, setDuplicates] = useState<
+    Record<string, DuplicateCandidate[]>
+  >({});
+  const [duplicateAck, setDuplicateAck] = useState<Record<string, boolean>>({});
   const seq = useRef(0);
   // Use a ref for masters so the analyse closure always sees the latest list
   // without forcing re-creation of all callbacks.
@@ -125,12 +181,22 @@ export function useUploadQueue(masters: {
 
   const remove = useCallback((id: string) => {
     setQueue((cur) => cur.filter((q) => q.id !== id));
+    setDuplicates((d) => {
+      const { [id]: _, ...rest } = d;
+      return rest;
+    });
+    setDuplicateAck((a) => {
+      const { [id]: _, ...rest } = a;
+      return rest;
+    });
   }, []);
 
   const clear = useCallback(() => {
     setQueue([]);
     setRejected([]);
     setSummary(null);
+    setDuplicates({});
+    setDuplicateAck({});
   }, []);
 
   const dismissRejection = useCallback((index: number) => {
@@ -139,6 +205,18 @@ export function useUploadQueue(masters: {
 
   const updateForm = useCallback(
     (id: string, patch: Partial<ArsipFormValues>) => {
+      // Editing form values invalidates any prior duplicate-check result so
+      // the next save triggers a fresh check.
+      setDuplicates((d) => {
+        if (!d[id]) return d;
+        const { [id]: _, ...rest } = d;
+        return rest;
+      });
+      setDuplicateAck((a) => {
+        if (!a[id]) return a;
+        const { [id]: _, ...rest } = a;
+        return rest;
+      });
       setQueue((cur) =>
         cur.map((q) => {
           if (q.id !== id) return q;
@@ -187,19 +265,24 @@ export function useUploadQueue(masters: {
         if (seq.current !== runId) return;
         try {
           update(q.id, { status: "dianalisis", error: undefined });
-          const textPreview = await readAsTextSafe(q.file);
+          const normalized = await normalizeImageIfNeeded(q.file);
+          if (normalized !== q.file) {
+            update(q.id, { file: normalized });
+          }
+          const workFile = normalized;
+          const textPreview = await readAsTextSafe(workFile);
           const isImageOrScan =
-            q.file.type.startsWith("image/") ||
-            q.file.type === "application/pdf";
+            workFile.type.startsWith("image/") ||
+            workFile.type === "application/pdf";
           if (isImageOrScan) update(q.id, { status: "ocr" });
-          const base64 = await fileToBase64(q.file);
+          const base64 = await fileToBase64(workFile);
           update(q.id, { status: "ekstraksi" });
           const result = await analyzeDocument({
             data: {
-              mime: q.file.type || "application/octet-stream",
+              mime: workFile.type || "application/octet-stream",
               base64,
               textPreview,
-              sizeBytes: q.file.size,
+              sizeBytes: workFile.size,
             },
           });
           const meta = metadataFromResponse(result.metadata);
@@ -268,6 +351,32 @@ export function useUploadQueue(masters: {
         return false;
       }
 
+      // AI Duplicate Detection — run once per (file, form-content). The
+      // operator must explicitly acknowledge any candidate before we proceed.
+      if (!duplicateAck[id]) {
+        try {
+          const found = await checkArsipDuplicates({
+            data: {
+              nomorSurat: form.nomorSurat.trim(),
+              judul: form.judul.trim(),
+              deskripsi: form.deskripsi?.trim() ?? "",
+            },
+          });
+          if (found.length > 0) {
+            setDuplicates((d) => ({ ...d, [id]: found }));
+            update(id, {
+              status: "perlu_review",
+              error:
+                "Terdeteksi kemungkinan duplikat. Tinjau daftar pada form, lalu klik Lanjutkan Simpan jika dokumen ini berbeda.",
+            });
+            return false;
+          }
+        } catch (err) {
+          // Duplicate-check failures must not block uploads; just log them.
+          console.warn("[uploadOne] duplicate check failed", err);
+        }
+      }
+
       update(id, { status: "sedang_upload", progress: 5, error: undefined });
 
       try {
@@ -303,6 +412,10 @@ export function useUploadQueue(masters: {
           arsipId: created.id,
           error: undefined,
         });
+        setDuplicates((d) => {
+          const { [id]: _, ...rest } = d;
+          return rest;
+        });
         // Sync all consumer-layer queries: Manajemen, Cari, Dashboard,
         // Statistik, Retensi, and activity feed.
         for (const key of ARSIP_DEPENDENT_KEYS) {
@@ -318,8 +431,12 @@ export function useUploadQueue(masters: {
         return false;
       }
     },
-    [queue, update, queryClient],
+    [queue, update, queryClient, duplicateAck],
   );
+
+  const acknowledgeDuplicate = useCallback((id: string) => {
+    setDuplicateAck((a) => ({ ...a, [id]: true }));
+  }, []);
 
   const uploadAll = useCallback(async () => {
     const targets = queue.filter((q) => q.status === "siap_upload");
@@ -376,6 +493,8 @@ export function useUploadQueue(masters: {
     isUploading,
     summary,
     stats,
+    duplicates,
+    duplicateAck,
     enqueue,
     remove,
     clear,
@@ -384,6 +503,7 @@ export function useUploadQueue(masters: {
     uploadOne,
     uploadAll,
     updateForm,
+    acknowledgeDuplicate,
     validateSingleFile,
   };
 }

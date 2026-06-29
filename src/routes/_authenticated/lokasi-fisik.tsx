@@ -30,7 +30,7 @@ import { DeleteDialog } from "@/components/arsip/DeleteDialog";
 export const Route = createFileRoute("/_authenticated/lokasi-fisik")({
   head: () => ({
     meta: [
-      { title: "Lokasi Fisik Arsip — SIPASTERA" },
+      { title: "Lokasi Fisik Arsip — PADDS SMANSAT" },
       {
         name: "description",
         content:

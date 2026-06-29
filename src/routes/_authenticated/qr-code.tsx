@@ -16,10 +16,10 @@ import { publicLinkFor } from "@/components/arsip/utils";
 export const Route = createFileRoute("/_authenticated/qr-code")({
   head: () => ({
     meta: [
-      { title: "QR Code Management — SIPASTERA" },
+      { title: "QR Code Management — PADDS SMANSAT" },
       {
         name: "description",
-        content: "Kelola seluruh QR Code arsip SIPASTERA: preview, analitik, dan aktivasi.",
+        content: "Kelola seluruh QR Code arsip PADDS SMANSAT: preview, analitik, dan aktivasi.",
       },
     ],
   }),

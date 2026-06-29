@@ -22,6 +22,8 @@ export type PublicArsip = {
   mimeType: string | null;
   previewUrl: string | null;
   previewExpiresIn: number | null;
+  downloadUrl: string | null;
+  downloadExpiresIn: number | null;
 };
 
 const Input = z.object({ id: z.string().uuid() });
@@ -47,6 +49,8 @@ export const getPublicArsip = createServerFn({ method: "POST" })
 
     let previewUrl: string | null = null;
     let previewExpiresIn: number | null = null;
+    let downloadUrl: string | null = null;
+    let downloadExpiresIn: number | null = null;
     const key = (row.storage_path ?? row.pdf_url ?? "").trim();
     if (key) {
       try {
@@ -59,6 +63,14 @@ export const getPublicArsip = createServerFn({ method: "POST" })
           });
           previewUrl = signed.url;
           previewExpiresIn = signed.expiresIn;
+          const dl = await storage.getSignedUrl(key, {
+            mode: "get",
+            expiresIn: 600,
+            downloadAs: row.file_name ?? row.nomor_surat,
+            contentType: row.mime_type ?? undefined,
+          });
+          downloadUrl = dl.url;
+          downloadExpiresIn = dl.expiresIn;
         }
       } catch (err) {
         console.error("[getPublicArsip] preview sign failed", err);
@@ -80,5 +92,7 @@ export const getPublicArsip = createServerFn({ method: "POST" })
       mimeType: row.mime_type,
       previewUrl,
       previewExpiresIn,
+      downloadUrl,
+      downloadExpiresIn,
     };
   });

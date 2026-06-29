@@ -1,5 +1,5 @@
 /**
- * SIPASTERA Storage Layer — public types.
+ * PADDS SMANSAT Storage Layer — public types.
  *
  * This file is client-safe (no SDK imports). It defines the contract every
  * storage provider (R2, S3, B2, Azure, Supabase Storage, ...) must satisfy.

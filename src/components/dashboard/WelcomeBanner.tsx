@@ -43,7 +43,7 @@ export function WelcomeBanner({ name = "Pengguna", role = "—" }: { name?: stri
             Selamat Datang, {name}!
           </h2>
           <p className="mt-1 text-sm text-white/85">
-            Sistem Informasi Arsip Digital Sekolah Berbasis QR Code
+            Pusat Arsip dan Dokumen Digital Sekolah SMAN 1 Suwawa Timur
           </p>
         </div>
         <div className="flex items-center gap-3 sm:flex-col sm:items-end">
