@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Calendar,
+  Download,
   ExternalLink,
   FileText,
   Hash,
@@ -121,16 +122,28 @@ function PublicArsipPage() {
           </div>
         ) : null}
 
-        {arsip.previewUrl ? (
+        {arsip.previewUrl || arsip.downloadUrl ? (
           <div className="border-t border-border px-6 py-5">
-            <a
-              href={arsip.previewUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-            >
-              <ExternalLink className="h-3.5 w-3.5" /> Lihat dokumen
-            </a>
+            <div className="flex flex-wrap items-center gap-2">
+              {arsip.previewUrl ? (
+                <a
+                  href={arsip.previewUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" /> Lihat dokumen
+                </a>
+              ) : null}
+              {arsip.downloadUrl ? (
+                <a
+                  href={arsip.downloadUrl}
+                  className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
+                >
+                  <Download className="h-3.5 w-3.5" /> Unduh dokumen
+                </a>
+              ) : null}
+            </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
               Tautan dokumen berlaku sementara untuk alasan keamanan.
             </p>
