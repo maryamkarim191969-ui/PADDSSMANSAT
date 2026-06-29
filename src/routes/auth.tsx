@@ -13,7 +13,7 @@ export const Route = createFileRoute("/auth")({
       {
         name: "description",
         content:
-          "Masuk ke PADDS SMANSAT — Sistem Informasi Pengarsipan Sekolah Terpadu berbasis QR Code dan AI.",
+          "Masuk ke PADDS SMANSAT — Pusat Arsip dan Dokumen Digital Sekolah SMAN 1 Suwawa Timur berbasis QR Code dan AI.",
       },
     ],
     links: [
@@ -144,7 +144,7 @@ function AuthPage() {
               </div>
               <div className="brand-title">
                 <div className="name">PADDS SMANSAT</div>
-                <div className="tagline">Pengarsipan Sekolah Terpadu</div>
+                <div className="tagline">Pusat Arsip & Dokumen Digital</div>
               </div>
             </div>
 

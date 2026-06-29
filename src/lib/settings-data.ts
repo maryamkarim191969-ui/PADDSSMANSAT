@@ -45,7 +45,7 @@ export const defaultSettings: SystemSettings = {
   app: {
     name: "PADDS SMANSAT",
     version: "2.0.0",
-    description: "Sistem Informasi Pengelolaan Arsip Sekolah Terintegrasi.",
+    description: "Pusat Arsip dan Dokumen Digital Sekolah SMAN 1 Suwawa Timur.",
   },
   appearance: "light",
   language: "id",

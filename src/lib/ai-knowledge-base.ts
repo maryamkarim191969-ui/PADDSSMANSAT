@@ -47,7 +47,7 @@ export type KBTerm = {
 
 export const PLATFORM_PROFILE = {
   name: "PADDS SMANSAT",
-  longName: "Sistem Pengarsipan Sekolah Terpadu",
+  longName: "Pusat Arsip dan Dokumen Digital Sekolah SMAN 1 Suwawa Timur",
   tagline:
     "Platform pengelolaan arsip digital yang membantu sekolah dan instansi mengelola dokumen secara modern, terstruktur, aman, dan efisien.",
   purpose:

@@ -41,7 +41,7 @@ export function Sidebar({ open, collapsed, onClose, onToggleCollapse }: SidebarP
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold tracking-wide text-white">PADDS SMANSAT</p>
                 <p className="truncate text-[11px] text-sidebar-foreground/70">
-                  Pengarsipan Sekolah Terpadu
+                  Pusat Arsip & Dokumen Digital
                 </p>
               </div>
             )}

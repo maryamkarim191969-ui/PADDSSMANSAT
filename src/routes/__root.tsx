@@ -78,21 +78,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PADDS SMANSAT — Sistem Informasi Arsip Digital Sekolah" },
+      { title: "PADDS SMANSAT — Pusat Arsip dan Dokumen Digital Sekolah" },
       {
         name: "description",
         content:
-          "PADDS SMANSAT: Sistem Informasi Pengarsipan Sekolah Terpadu berbasis QR Code.",
+          "PADDS SMANSAT: Pusat Arsip dan Dokumen Digital Sekolah SMAN 1 Suwawa Timur berbasis QR Code.",
       },
       { name: "author", content: "PADDS SMANSAT" },
-      { property: "og:title", content: "PADDS SMANSAT — Sistem Informasi Arsip Digital Sekolah" },
+      { property: "og:title", content: "PADDS SMANSAT — Pusat Arsip dan Dokumen Digital Sekolah" },
       {
         property: "og:description",
-        content: "Sistem Informasi Arsip Digital Sekolah Berbasis QR Code.",
+        content: "Pusat Arsip dan Dokumen Digital Sekolah SMAN 1 Suwawa Timur.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "PADDS SMANSAT — Sistem Informasi Arsip Digital Sekolah" },
+      { name: "twitter:title", content: "PADDS SMANSAT — Pusat Arsip dan Dokumen Digital Sekolah" },
       { name: "description", content: "Follow Instructions executes tasks based on provided user directives." },
       { property: "og:description", content: "Follow Instructions executes tasks based on provided user directives." },
       { name: "twitter:description", content: "Follow Instructions executes tasks based on provided user directives." },
