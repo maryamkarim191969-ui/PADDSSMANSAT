@@ -143,6 +143,9 @@ export function UploadWorkspace() {
         masters={{ kategori: masters.kategori, lokasi: masters.lokasi }}
         onClose={() => setReviewId(null)}
         onChange={q.updateForm}
+        duplicates={reviewItem ? q.duplicates[reviewItem.id] ?? [] : []}
+        duplicateAck={reviewItem ? !!q.duplicateAck[reviewItem.id] : false}
+        onAcknowledgeDuplicate={(id) => q.acknowledgeDuplicate(id)}
         onUpload={(id) => {
           void q.uploadOne(id).then((ok) => {
             if (ok) setReviewId(null);
