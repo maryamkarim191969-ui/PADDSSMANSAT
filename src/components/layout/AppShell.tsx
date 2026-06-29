@@ -20,6 +20,7 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   "/user": { title: "Manajemen User", subtitle: "Kelola pengguna sistem" },
   "/backup": { title: "Backup & Restore", subtitle: "Cadangkan dan pulihkan data" },
   "/pengaturan": { title: "Pengaturan", subtitle: "Konfigurasi aplikasi" },
+  "/info": { title: "Pusat Informasi", subtitle: "Dokumentasi resmi platform" },
 };
 
 export function AppShell({ children }: { children: ReactNode }) {
