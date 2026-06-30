@@ -1,6 +1,6 @@
 // File constraints and labels for the AI Document Intelligence upload workspace.
 
-export const MAX_FILES = 20;
+export const MAX_FILES = 50;
 export const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export const ACCEPTED_MIME = [
