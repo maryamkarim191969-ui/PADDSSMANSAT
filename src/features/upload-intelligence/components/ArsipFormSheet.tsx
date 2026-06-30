@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, FileText, Sparkles, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileText, ShieldCheck, Sparkles, X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -31,7 +31,7 @@ import type {
   QueuedFile,
 } from "../types";
 import { formatBytes } from "./utils";
-import type { DuplicateCandidate } from "@/lib/duplicate-check.functions";
+import type { IntegrityAnalysis } from "@/lib/duplicate-check.functions";
 
 type Props = {
   item: QueuedFile | null;
@@ -40,7 +40,7 @@ type Props = {
   onChange: (id: string, patch: Partial<ArsipFormValues>) => void;
   onUpload: (id: string) => void;
   busy: boolean;
-  duplicates?: DuplicateCandidate[];
+  integrity?: IntegrityAnalysis | null;
   duplicateAck?: boolean;
   onAcknowledgeDuplicate?: (id: string) => void;
 };
@@ -52,10 +52,14 @@ export function ArsipFormSheet({
   onChange,
   onUpload,
   busy,
-  duplicates = [],
+  integrity = null,
   duplicateAck = false,
   onAcknowledgeDuplicate,
 }: Props) {
+  const duplicates = integrity?.candidates ?? [];
+  const verdict = integrity?.verdict ?? null;
+  const blocking =
+    duplicates.length > 0 && verdict !== null && !duplicateAck;
   const [errors, setErrors] = useState<ArsipFormErrors>({});
 
   // Reset validation when switching files.
@@ -293,39 +297,71 @@ export function ArsipFormSheet({
             </div>
           ) : null}
 
-          {duplicates.length > 0 ? (
-            <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+          {integrity ? (
+            <div
+              className={`mt-4 rounded-lg border p-3 text-xs ${
+                verdict === "clean"
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                  : verdict === "likely-duplicate"
+                    ? "border-destructive/40 bg-destructive/5 text-destructive"
+                    : "border-amber-300 bg-amber-50 text-amber-900"
+              }`}
+            >
               <div className="flex items-start gap-2">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                {verdict === "clean" ? (
+                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                ) : verdict === "likely-duplicate" ? (
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                ) : (
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">
-                    Terdeteksi kemungkinan duplikat
+                    {verdict === "clean"
+                      ? "AI Archive Integrity — tidak ditemukan indikasi duplikasi"
+                      : verdict === "likely-duplicate"
+                        ? "AI Archive Integrity — kemungkinan tinggi merupakan duplikat"
+                        : "AI Archive Integrity — terdapat dokumen yang perlu ditinjau"}
                   </p>
-                  <p className="mt-0.5 text-amber-800">
-                    Dokumen berikut memiliki kemiripan dengan data yang sedang
-                    Anda simpan. Tinjau terlebih dahulu, kemudian pilih
-                    Lanjutkan Simpan jika dokumen ini berbeda.
+                  <p className="mt-0.5 opacity-90">
+                    {verdict === "clean"
+                      ? `Dokumen ini telah dibandingkan dengan arsip yang tersimpan dan tidak menunjukkan kemiripan signifikan. Anda dapat melanjutkan penyimpanan.`
+                      : `Hasil analisis menunjukkan dokumen ini memiliki kemiripan dengan arsip berikut. Tinjau terlebih dahulu sebelum melanjutkan. Keputusan akhir berada di tangan administrator.`}
                   </p>
+                  {duplicates.length > 0 ? (
                   <ul className="mt-2 space-y-1.5">
                     {duplicates.map((d) => (
                       <li
                         key={d.id}
-                        className="rounded-md border border-amber-200 bg-white/70 p-2"
+                        className="rounded-md border border-current/20 bg-white/70 p-2 text-foreground"
                       >
-                        <p className="font-medium text-foreground">{d.judul}</p>
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="min-w-0 flex-1 truncate font-medium text-foreground">
+                            {d.judul}
+                          </p>
+                          <span
+                            className={`inline-flex shrink-0 items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                              d.severity === "high"
+                                ? "bg-destructive/10 text-destructive"
+                                : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {d.severity === "high" ? "Tinggi" : "Sedang"} · {Math.round(d.score * 100)}%
+                          </span>
+                        </div>
                         <p className="mt-0.5 text-[11px] text-muted-foreground">
-                          {d.nomorSurat} · {d.kategori} · {d.tahun} ·
-                          Kemiripan {(d.score * 100).toFixed(0)}%
-                          {d.reason === "exact-nomor"
-                            ? " (nomor surat sama)"
-                            : d.reason === "similar-judul"
-                              ? " (judul mirip)"
-                              : " (deskripsi mirip)"}
+                          {d.nomorSurat} · {d.kategori} · {d.tahun}
                         </p>
+                        {d.matchedSignals.length > 0 ? (
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            Sinyal: {d.matchedSignals.join(" · ")}
+                          </p>
+                        ) : null}
                       </li>
                     ))}
                   </ul>
-                  {!duplicateAck && item ? (
+                  ) : null}
+                  {duplicates.length > 0 && !duplicateAck && item ? (
                     <Button
                       type="button"
                       size="sm"
@@ -337,10 +373,14 @@ export function ArsipFormSheet({
                     >
                       Lanjutkan Simpan
                     </Button>
-                  ) : (
+                  ) : duplicates.length > 0 ? (
                     <p className="mt-3 text-[11px] font-medium text-amber-900">
                       Konfirmasi diterima — klik Simpan & Upload untuk
                       menyimpan dokumen ini.
+                    </p>
+                  ) : (
+                    <p className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium">
+                      <CheckCircle2 className="h-3 w-3" /> Aman untuk disimpan
                     </p>
                   )}
                 </div>
@@ -356,9 +396,7 @@ export function ArsipFormSheet({
           <Button
             type="button"
             onClick={submit}
-            disabled={
-              busy || !item || (duplicates.length > 0 && !duplicateAck)
-            }
+            disabled={busy || !item || blocking}
           >
             Simpan & Upload
           </Button>
