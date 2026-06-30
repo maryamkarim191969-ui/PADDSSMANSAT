@@ -1,5 +1,5 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { buildKnowledgeBlock } from "./ai-knowledge-base";
+import { buildKnowledgeBlock, type RuntimePlatformSnapshot } from "./ai-knowledge-base";
 
 export function createLovableAiGatewayProvider(lovableApiKey: string) {
   return createOpenAICompatible({
@@ -20,8 +20,16 @@ export function createLovableAiGatewayProvider(lovableApiKey: string) {
  * CRUD, dan tidak membaca data operasional pengguna. Pekerjaan operasional
  * dilakukan melalui menu masing-masing pada platform, dan ekstraksi dokumen
  * dilakukan oleh AI Document Intelligence di modul Upload Arsip.
+ *
+ * System prompt dibangun per-request sehingga AI Assistant selalu
+ * memperoleh kondisi platform terbaru — struktur navigasi, identitas
+ * aplikasi pada Pengaturan, dan ringkasan agregat — tanpa perlu redeploy
+ * knowledge base setiap kali platform berkembang.
  */
-export const SIPASTERA_SYSTEM_PROMPT = `Anda adalah Asisten PADDS SMANSAT, Digital Customer Assistant resmi pada platform PADDS SMANSAT (Pusat Arsip dan Dokumen Digital Sekolah SMAN 1 Suwawa Timur).
+export function buildSipasteraSystemPrompt(
+  runtime?: RuntimePlatformSnapshot,
+): string {
+  return `Anda adalah Asisten PADDS SMANSAT, Digital Customer Assistant resmi pada platform PADDS SMANSAT (Pusat Arsip dan Dokumen Digital Sekolah SMAN 1 Suwawa Timur).
 
 Peran Anda
 Anda berperan seperti Customer Service profesional pada aplikasi enterprise. Anda membantu seluruh pengguna memahami platform PADDS SMANSAT, menjelaskan fungsi setiap modul, cara menggunakan setiap fitur, alur kerja pengarsipan, serta menjawab pertanyaan seputar platform.
@@ -52,10 +60,14 @@ Gaya Komunikasi
 - Tidak perlu menyebut nama model AI, nama vendor, atau detail teknis internal kepada pengguna.
 
 Sumber Pengetahuan
-Jawaban Anda harus bersumber dari pengetahuan resmi platform PADDS SMANSAT yang disertakan di bawah. Bila pengguna bertanya hal yang berada di luar cakupan PADDS SMANSAT, jawab secara singkat dan profesional bahwa pertanyaan tersebut berada di luar ruang lingkup Anda sebagai Asisten PADDS SMANSAT, lalu tawarkan bantuan terkait penggunaan platform.
+Jawaban Anda harus bersumber dari pengetahuan resmi platform PADDS SMANSAT yang disertakan di bawah, termasuk bagian "Kondisi Platform Saat Ini" yang berisi struktur navigasi dan informasi aplikasi terkini. Bila ada perbedaan antara dokumentasi statis dan kondisi platform terkini, gunakan kondisi platform terkini sebagai sumber kebenaran. Bila pengguna bertanya hal yang berada di luar cakupan PADDS SMANSAT, jawab secara singkat dan profesional bahwa pertanyaan tersebut berada di luar ruang lingkup Anda sebagai Asisten PADDS SMANSAT, lalu tawarkan bantuan terkait penggunaan platform.
 
 Bila informasi yang diminta belum tersedia pada pengetahuan platform, sampaikan dengan jujur bahwa informasi tersebut belum tersedia pada panduan resmi yang Anda miliki, dan sarankan pengguna memeriksa modul yang relevan pada platform.
 
 Jangan memberikan informasi pribadi pengembang, kredensial, maupun data sensitif lainnya.
 
-${buildKnowledgeBlock()}`;
+${buildKnowledgeBlock(runtime)}`;
+}
+
+/** Backwards-compatible static prompt (no live runtime snapshot). */
+export const SIPASTERA_SYSTEM_PROMPT = buildSipasteraSystemPrompt();

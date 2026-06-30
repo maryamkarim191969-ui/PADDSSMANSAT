@@ -423,7 +423,25 @@ function bullets(items: string[]): string {
   return items.map((s) => `- ${s}`).join("\n");
 }
 
-export function buildKnowledgeBlock(): string {
+export type RuntimePlatformSnapshot = {
+  /** Live navigation tree pulled from the running app. */
+  navigation?: Array<{ title: string; items: Array<{ label: string; to: string }> }>;
+  /** Live application identity from system_settings.app. */
+  appIdentity?: { name?: string; description?: string };
+  /** Live aggregate counters (no PII, just structural facts). */
+  aggregates?: {
+    totalArsip?: number;
+    totalKategori?: number;
+    totalLokasi?: number;
+    totalPengguna?: number;
+  };
+  /** Build/version identifier of the deployed platform. */
+  version?: string;
+  /** ISO timestamp the snapshot was taken on the server. */
+  snapshotAt?: string;
+};
+
+export function buildKnowledgeBlock(runtime?: RuntimePlatformSnapshot): string {
   const modulesText = KB_MODULES.map((m) => {
     const tips = m.tips?.length ? `\n  Tips:\n${m.tips.map((t) => `    - ${t}`).join("\n")}` : "";
     return [
@@ -444,7 +462,7 @@ export function buildKnowledgeBlock(): string {
 
   const termsText = KB_TERMS.map((t) => `${t.term}: ${t.definition}`).join("\n");
 
-  return [
+  const lines: string[] = [
     "Pengetahuan Platform PADDS SMANSAT",
     "",
     `Nama Platform: ${PLATFORM_PROFILE.name} (${PLATFORM_PROFILE.longName})`,
@@ -476,6 +494,9 @@ export function buildKnowledgeBlock(): string {
     "Catatan:",
     bullets(AI_DOCUMENT_INTELLIGENCE.notes),
     "",
+    "AI Archive Integrity Analysis (modul Upload Arsip):",
+    "Setelah analisis metadata selesai, platform secara otomatis menjalankan AI Archive Integrity Analysis untuk membandingkan dokumen yang sedang diunggah dengan arsip yang telah tersimpan. Hasilnya memberikan tiga kemungkinan: tidak ditemukan indikasi duplikasi, terdapat dokumen yang perlu ditinjau, atau kemungkinan tinggi merupakan duplikat. Administrator tetap memegang keputusan akhir sebelum dokumen disimpan.",
+    "",
     "Modul Platform:",
     modulesText,
     "",
@@ -484,5 +505,39 @@ export function buildKnowledgeBlock(): string {
     "",
     "Istilah Kearsipan:",
     termsText,
-  ].join("\n");
+  ];
+
+  if (runtime) {
+    const rt: string[] = ["", "Kondisi Platform Saat Ini (Sinkronisasi Otomatis):"];
+    if (runtime.appIdentity?.name) rt.push(`Nama Aplikasi: ${runtime.appIdentity.name}`);
+    if (runtime.appIdentity?.description)
+      rt.push(`Deskripsi Resmi: ${runtime.appIdentity.description}`);
+    if (runtime.version) rt.push(`Versi Platform: ${runtime.version}`);
+    if (runtime.snapshotAt) rt.push(`Data diperbarui pada: ${runtime.snapshotAt}`);
+    if (runtime.aggregates) {
+      const a = runtime.aggregates;
+      const parts: string[] = [];
+      if (typeof a.totalArsip === "number") parts.push(`Total arsip: ${a.totalArsip}`);
+      if (typeof a.totalKategori === "number")
+        parts.push(`Total kategori: ${a.totalKategori}`);
+      if (typeof a.totalLokasi === "number")
+        parts.push(`Total lokasi fisik: ${a.totalLokasi}`);
+      if (typeof a.totalPengguna === "number")
+        parts.push(`Total pengguna: ${a.totalPengguna}`);
+      if (parts.length) rt.push(`Ringkasan basis data: ${parts.join(", ")}.`);
+    }
+    if (runtime.navigation?.length) {
+      rt.push("Struktur navigasi terkini:");
+      for (const sec of runtime.navigation) {
+        rt.push(`- ${sec.title}`);
+        for (const it of sec.items) rt.push(`    - ${it.label} (${it.to})`);
+      }
+      rt.push(
+        "Gunakan struktur navigasi di atas sebagai sumber kebenaran ketika menjelaskan lokasi menu kepada pengguna. Bila terdapat perbedaan dengan deskripsi modul di bagian sebelumnya, ikuti struktur navigasi terkini.",
+      );
+    }
+    lines.push(...rt);
+  }
+
+  return lines.join("\n");
 }
