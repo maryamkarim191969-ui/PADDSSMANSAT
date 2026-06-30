@@ -5,6 +5,7 @@ import { uploadAndCreateArsip } from "@/lib/upload-arsip.functions";
 import {
   checkArsipDuplicates,
   type DuplicateCandidate,
+  type IntegrityAnalysis,
 } from "@/lib/duplicate-check.functions";
 import { ARSIP_DEPENDENT_KEYS } from "@/lib/query-keys";
 import { validateBatch, validateSingleFile } from "../services/validation";
@@ -140,8 +141,8 @@ export function useUploadQueue(masters: {
   const [isAnalysing, setAnalysing] = useState(false);
   const [isUploading, setUploading] = useState(false);
   const [summary, setSummary] = useState<WorkspaceSummary | null>(null);
-  const [duplicates, setDuplicates] = useState<
-    Record<string, DuplicateCandidate[]>
+  const [integrity, setIntegrity] = useState<
+    Record<string, IntegrityAnalysis>
   >({});
   const [duplicateAck, setDuplicateAck] = useState<Record<string, boolean>>({});
   const seq = useRef(0);
@@ -181,7 +182,7 @@ export function useUploadQueue(masters: {
 
   const remove = useCallback((id: string) => {
     setQueue((cur) => cur.filter((q) => q.id !== id));
-    setDuplicates((d) => {
+    setIntegrity((d) => {
       const { [id]: _, ...rest } = d;
       return rest;
     });
@@ -195,7 +196,7 @@ export function useUploadQueue(masters: {
     setQueue([]);
     setRejected([]);
     setSummary(null);
-    setDuplicates({});
+    setIntegrity({});
     setDuplicateAck({});
   }, []);
 
@@ -205,9 +206,9 @@ export function useUploadQueue(masters: {
 
   const updateForm = useCallback(
     (id: string, patch: Partial<ArsipFormValues>) => {
-      // Editing form values invalidates any prior duplicate-check result so
-      // the next save triggers a fresh check.
-      setDuplicates((d) => {
+      // Editing form values invalidates any prior integrity-analysis result
+      // so the next save triggers a fresh check.
+      setIntegrity((d) => {
         if (!d[id]) return d;
         const { [id]: _, ...rest } = d;
         return rest;
@@ -260,6 +261,7 @@ export function useUploadQueue(masters: {
     setAnalysing(true);
     setSummary(null);
 
+    const analysed: Array<{ id: string; meta: ExtractedMetadata; form: ArsipFormValues }> = [];
     await Promise.all(
       targets.map(async (q) => {
         if (seq.current !== runId) return;
@@ -291,6 +293,7 @@ export function useUploadQueue(masters: {
             mastersRef.current,
           );
           // Preserve any prior operator edits on the form.
+          let mergedFormForIntegrity: ArsipFormValues | null = null;
           setQueue((cur) =>
             cur.map((item) => {
               if (item.id !== q.id) return item;
@@ -310,6 +313,7 @@ export function useUploadQueue(masters: {
                 merged.nomorSurat.trim() &&
                 merged.judul.trim() &&
                 merged.kategori.trim();
+              mergedFormForIntegrity = merged;
               return {
                 ...item,
                 metadata: meta,
@@ -320,6 +324,9 @@ export function useUploadQueue(masters: {
               };
             }),
           );
+          if (mergedFormForIntegrity) {
+            analysed.push({ id: q.id, meta, form: mergedFormForIntegrity });
+          }
         } catch (e) {
           update(q.id, {
             status: "gagal",
@@ -328,6 +335,33 @@ export function useUploadQueue(masters: {
         }
       }),
     );
+
+    // AI Archive Integrity Analysis — runs immediately after metadata
+    // extraction so the administrator sees both AI results (metadata +
+    // integrity) before saving. Failures are non-blocking.
+    if (seq.current === runId && analysed.length > 0) {
+      await Promise.all(
+        analysed.map(async ({ id, meta, form }) => {
+          if (!form.nomorSurat.trim() || !form.judul.trim()) return;
+          try {
+            const verdict = await checkArsipDuplicates({
+              data: {
+                nomorSurat: form.nomorSurat.trim(),
+                judul: form.judul.trim(),
+                deskripsi: form.deskripsi?.trim() ?? "",
+                ringkasan: meta.ringkasan?.value ?? "",
+                keywords: meta.keywords?.value ?? [],
+                tahun: Number(form.tahun) || undefined,
+                kategori: form.kategori?.trim() ?? "",
+              },
+            });
+            setIntegrity((cur) => ({ ...cur, [id]: verdict }));
+          } catch (err) {
+            console.warn("[integrity] analysis failed for", id, err);
+          }
+        }),
+      );
+    }
 
     if (seq.current === runId) setAnalysing(false);
   }, [queue, update]);
@@ -355,15 +389,19 @@ export function useUploadQueue(masters: {
       // operator must explicitly acknowledge any candidate before we proceed.
       if (!duplicateAck[id]) {
         try {
-          const found = await checkArsipDuplicates({
+          const verdict = await checkArsipDuplicates({
             data: {
               nomorSurat: form.nomorSurat.trim(),
               judul: form.judul.trim(),
               deskripsi: form.deskripsi?.trim() ?? "",
+              ringkasan: target.metadata?.ringkasan?.value ?? "",
+              keywords: target.metadata?.keywords?.value ?? [],
+              tahun: Number(form.tahun) || undefined,
+              kategori: form.kategori?.trim() ?? "",
             },
           });
-          if (found.length > 0) {
-            setDuplicates((d) => ({ ...d, [id]: found }));
+          setIntegrity((cur) => ({ ...cur, [id]: verdict }));
+          if (verdict.candidates.length > 0) {
             update(id, {
               status: "perlu_review",
               error:
@@ -412,7 +450,7 @@ export function useUploadQueue(masters: {
           arsipId: created.id,
           error: undefined,
         });
-        setDuplicates((d) => {
+        setIntegrity((d) => {
           const { [id]: _, ...rest } = d;
           return rest;
         });
@@ -493,7 +531,7 @@ export function useUploadQueue(masters: {
     isUploading,
     summary,
     stats,
-    duplicates,
+    integrity,
     duplicateAck,
     enqueue,
     remove,
