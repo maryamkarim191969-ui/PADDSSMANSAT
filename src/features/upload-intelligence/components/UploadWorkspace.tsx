@@ -39,9 +39,11 @@ export function UploadWorkspace() {
               Upload Arsip
             </h1>
             <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-              AI membaca isi dokumen dan mengisi otomatis Form Arsip. Anda
-              cukup meninjau, melengkapi, lalu menyimpan. Maksimal {MAX_FILES}{" "}
-              file per sesi.
+              Dua tahap AI membantu proses upload: (1) AI Analisis Metadata
+              membaca isi dokumen dan mengisi otomatis Form Arsip, kemudian
+              (2) AI Pengecekan Nomor Surat memverifikasi nomor terhadap
+              database sebelum arsip disimpan. Maksimal {MAX_FILES} file per
+              sesi.
             </p>
           </div>
         </div>
