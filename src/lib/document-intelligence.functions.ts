@@ -20,6 +20,12 @@ const InputSchema = z.object({
   textPreview: z.string().optional(),
   // sizeBytes is informational; the validation layer already enforced limits.
   sizeBytes: z.number().int().nonnegative(),
+  /**
+   * Daftar kategori aktif yang dimiliki platform. Dikirim dari klien agar
+   * AI Smart Category Recognition selalu memilih kategori dari daftar
+   * resmi. Bila daftar kosong, prompt jatuh ke fallback default.
+   */
+  availableCategories: z.array(z.string().trim().min(1).max(120)).max(200).optional(),
 });
 
 export type AnalyzeDocumentInput = z.infer<typeof InputSchema>;
@@ -46,6 +52,18 @@ const ResponseSchema = z.object({
     value: z.array(z.string()).nullable(),
     confidence: z.number().min(0).max(1).nullable(),
   }),
+  /**
+   * Usulan kategori baru bila AI menilai dokumen benar-benar bukan bagian
+   * dari daftar kategori aktif. Nilai default null; wajib disertai alasan
+   * agar administrator dapat menilai kelayakannya.
+   */
+  kategori_saran_baru: z
+    .object({
+      value: z.string().nullable(),
+      alasan: z.string().nullable(),
+    })
+    .optional()
+    .default({ value: null, alasan: null }),
 });
 
 export type AnalyzeDocumentResult = {
@@ -53,7 +71,20 @@ export type AnalyzeDocumentResult = {
   durations: { parse: number; llm: number; total: number };
 };
 
-const SYSTEM_PROMPT = `You are PADDS SMANSAT Document Intelligence — an expert Indonesian school-archive analyst.
+function buildSystemPrompt(availableCategories: string[] | undefined): string {
+  const cats = (availableCategories ?? [])
+    .map((c) => c.trim())
+    .filter((c) => c.length > 0);
+  const catList = cats.length > 0 ? cats : [
+    "Administrasi",
+    "Keuangan",
+    "Kesiswaan",
+    "Kepegawaian",
+    "Kurikulum",
+    "Lainnya",
+  ];
+  const catEnum = catList.map((c) => JSON.stringify(c)).join(" | ");
+  return `You are PADDS SMANSAT Document Intelligence — an expert Indonesian school-archive analyst.
 
 You read the SINGLE attached document and extract administrative metadata STRICTLY from its visible content. Follow these absolute rules:
 
@@ -66,7 +97,7 @@ You read the SINGLE attached document and extract administrative metadata STRICT
 7. "ringkasan" must be 1-3 sentences summarising the actual document content.
 8. "keywords" is an array of 3-8 short Indonesian keywords found in the document.
 9. "jenis" must be one of: "Surat Masuk", "Surat Keluar", "Internal" — only when the document type is clearly identifiable.
-10. "kategori" must be one of: "Administrasi", "Keuangan", "Kesiswaan", "Kepegawaian", "Kurikulum", "Lainnya".
+10. "kategori" — AI Smart Category Recognition — WAJIB dipilih dari salah satu kategori aktif berikut: ${catEnum}. Bila salah satu kategori tersebut cocok dengan dokumen, gunakan kategori itu (kembalikan namanya persis, case-sensitive). Jika tidak ada satupun yang cocok, set "kategori.value" = null dan gunakan field "kategori_saran_baru" untuk mengusulkan kategori baru beserta alasan singkat berbahasa Indonesia. JANGAN membuat kategori baru bila salah satu kategori aktif masih relevan.
 11. "tanggal_surat" / "tanggal_dokumen" must be ISO format YYYY-MM-DD when day/month/year are present in the document.
 12. Confidence reflects how clearly the value appears in the document: 1.0 = stated verbatim, 0.85+ = unambiguous, 0.6-0.84 = partial / inferred from neighbouring text, below 0.6 = weak signal (prefer null instead).
 
@@ -81,11 +112,13 @@ Schema (return ONE object, this shape exactly):
   "instansi": { "value": string|null, "confidence": 0..1 },
   "perihal": { "value": string|null, "confidence": 0..1 },
   "jenis": { "value": "Surat Masuk"|"Surat Keluar"|"Internal"|null, "confidence": 0..1 },
-  "kategori": { "value": "Administrasi"|"Keuangan"|"Kesiswaan"|"Kepegawaian"|"Kurikulum"|"Lainnya"|null, "confidence": 0..1 },
+  "kategori": { "value": (${catEnum})|null, "confidence": 0..1 },
   "lokasi_fisik": { "value": string|null, "confidence": 0..1 },
   "ringkasan": { "value": string|null, "confidence": 0..1 },
-  "keywords": { "value": string[]|null, "confidence": 0..1 }
+  "keywords": { "value": string[]|null, "confidence": 0..1 },
+  "kategori_saran_baru": { "value": string|null, "alasan": string|null }
 }`;
+}
 
 function buildUserContent(input: AnalyzeDocumentInput): unknown[] {
   const blocks: unknown[] = [
@@ -124,7 +157,10 @@ function buildUserContent(input: AnalyzeDocumentInput): unknown[] {
   return blocks;
 }
 
-async function callLovableAi(content: unknown[]): Promise<string> {
+async function callLovableAi(
+  content: unknown[],
+  systemPrompt: string,
+): Promise<string> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) {
     throw new Error("LOVABLE_API_KEY belum dikonfigurasi.");
@@ -132,7 +168,7 @@ async function callLovableAi(content: unknown[]): Promise<string> {
   const body = {
     model: "google/gemini-3-flash-preview",
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: systemPrompt },
       { role: "user", content },
     ],
     response_format: { type: "json_object" },
@@ -200,7 +236,10 @@ export const analyzeDocument = createServerFn({ method: "POST" })
     const tParse = Date.now() - t0;
 
     const tLlmStart = Date.now();
-    const raw = await callLovableAi(content);
+    const raw = await callLovableAi(
+      content,
+      buildSystemPrompt(data.availableCategories),
+    );
     const tLlm = Date.now() - tLlmStart;
 
     const parsed = safeJsonParse(raw);
