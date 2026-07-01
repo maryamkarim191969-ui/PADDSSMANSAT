@@ -39,9 +39,11 @@ export function UploadWorkspace() {
               Upload Arsip
             </h1>
             <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-              AI membaca isi dokumen dan mengisi otomatis Form Arsip. Anda
-              cukup meninjau, melengkapi, lalu menyimpan. Maksimal {MAX_FILES}{" "}
-              file per sesi.
+              Dua tahap AI membantu proses upload: (1) AI Analisis Metadata
+              membaca isi dokumen dan mengisi otomatis Form Arsip, kemudian
+              (2) AI Pengecekan Nomor Surat memverifikasi nomor terhadap
+              database sebelum arsip disimpan. Maksimal {MAX_FILES} file per
+              sesi.
             </p>
           </div>
         </div>
@@ -143,9 +145,21 @@ export function UploadWorkspace() {
         masters={{ kategori: masters.kategori, lokasi: masters.lokasi }}
         onClose={() => setReviewId(null)}
         onChange={q.updateForm}
-        integrity={reviewItem ? q.integrity[reviewItem.id] ?? null : null}
-        duplicateAck={reviewItem ? !!q.duplicateAck[reviewItem.id] : false}
-        onAcknowledgeDuplicate={(id) => q.acknowledgeDuplicate(id)}
+        nomorCheck={reviewItem ? q.nomorCheck[reviewItem.id] ?? null : null}
+        nomorChecking={
+          reviewItem ? !!q.nomorChecking[reviewItem.id] : false
+        }
+        onCheckNomor={(id: string) => void q.checkNomorForItem(id)}
+        categoryProposal={
+          reviewItem ? q.categoryProposals[reviewItem.id] ?? null : null
+        }
+        approvingCategory={
+          reviewItem ? !!q.approvingCategory[reviewItem.id] : false
+        }
+        onApproveCategory={(id: string) => void q.approveCategoryProposal(id)}
+        onDismissCategoryProposal={(id: string) =>
+          q.dismissCategoryProposal(id)
+        }
         onUpload={(id) => {
           void q.uploadOne(id).then((ok) => {
             if (ok) setReviewId(null);

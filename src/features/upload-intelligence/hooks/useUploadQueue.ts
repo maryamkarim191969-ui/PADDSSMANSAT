@@ -3,10 +3,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { analyzeDocument } from "@/lib/document-intelligence.functions";
 import { uploadAndCreateArsip } from "@/lib/upload-arsip.functions";
 import {
-  checkArsipDuplicates,
-  type DuplicateCandidate,
-  type IntegrityAnalysis,
-} from "@/lib/duplicate-check.functions";
+  checkNomorSurat,
+  type NomorSuratCheckResult,
+} from "@/lib/nomor-check.functions";
+import { createKategori } from "@/lib/kategori.functions";
 import { ARSIP_DEPENDENT_KEYS } from "@/lib/query-keys";
 import { validateBatch, validateSingleFile } from "../services/validation";
 import { buildField, emptyMetadata, needsReview } from "../services/metadataNormalizer";
@@ -141,10 +141,22 @@ export function useUploadQueue(masters: {
   const [isAnalysing, setAnalysing] = useState(false);
   const [isUploading, setUploading] = useState(false);
   const [summary, setSummary] = useState<WorkspaceSummary | null>(null);
-  const [integrity, setIntegrity] = useState<
-    Record<string, IntegrityAnalysis>
+  /** Hasil AI Pengecekan Nomor Surat per item. */
+  const [nomorCheck, setNomorCheck] = useState<
+    Record<string, NomorSuratCheckResult>
   >({});
-  const [duplicateAck, setDuplicateAck] = useState<Record<string, boolean>>({});
+  /** Item mana yang sedang menjalankan AI Pengecekan Nomor Surat. */
+  const [nomorChecking, setNomorChecking] = useState<Record<string, boolean>>(
+    {},
+  );
+  /** Usulan kategori baru dari AI per item (belum disetujui admin). */
+  const [categoryProposals, setCategoryProposals] = useState<
+    Record<string, { value: string; alasan: string }>
+  >({});
+  /** Sedang memproses persetujuan kategori baru. */
+  const [approvingCategory, setApprovingCategory] = useState<
+    Record<string, boolean>
+  >({});
   const seq = useRef(0);
   // Use a ref for masters so the analyse closure always sees the latest list
   // without forcing re-creation of all callbacks.
@@ -182,12 +194,16 @@ export function useUploadQueue(masters: {
 
   const remove = useCallback((id: string) => {
     setQueue((cur) => cur.filter((q) => q.id !== id));
-    setIntegrity((d) => {
+    setNomorCheck((d) => {
       const { [id]: _, ...rest } = d;
       return rest;
     });
-    setDuplicateAck((a) => {
-      const { [id]: _, ...rest } = a;
+    setNomorChecking((d) => {
+      const { [id]: _, ...rest } = d;
+      return rest;
+    });
+    setCategoryProposals((d) => {
+      const { [id]: _, ...rest } = d;
       return rest;
     });
   }, []);
@@ -196,8 +212,10 @@ export function useUploadQueue(masters: {
     setQueue([]);
     setRejected([]);
     setSummary(null);
-    setIntegrity({});
-    setDuplicateAck({});
+    setNomorCheck({});
+    setNomorChecking({});
+    setCategoryProposals({});
+    setApprovingCategory({});
   }, []);
 
   const dismissRejection = useCallback((index: number) => {
@@ -206,18 +224,15 @@ export function useUploadQueue(masters: {
 
   const updateForm = useCallback(
     (id: string, patch: Partial<ArsipFormValues>) => {
-      // Editing form values invalidates any prior integrity-analysis result
-      // so the next save triggers a fresh check.
-      setIntegrity((d) => {
-        if (!d[id]) return d;
-        const { [id]: _, ...rest } = d;
-        return rest;
-      });
-      setDuplicateAck((a) => {
-        if (!a[id]) return a;
-        const { [id]: _, ...rest } = a;
-        return rest;
-      });
+      // Editing nomor surat invalidates the previous nomor-check result so
+      // the administrator sees a fresh check after any edit.
+      if (patch.nomorSurat !== undefined) {
+        setNomorCheck((d) => {
+          if (!d[id]) return d;
+          const { [id]: _, ...rest } = d;
+          return rest;
+        });
+      }
       setQueue((cur) =>
         cur.map((q) => {
           if (q.id !== id) return q;
@@ -261,7 +276,6 @@ export function useUploadQueue(masters: {
     setAnalysing(true);
     setSummary(null);
 
-    const analysed: Array<{ id: string; meta: ExtractedMetadata; form: ArsipFormValues }> = [];
     await Promise.all(
       targets.map(async (q) => {
         if (seq.current !== runId) return;
@@ -279,21 +293,44 @@ export function useUploadQueue(masters: {
           if (isImageOrScan) update(q.id, { status: "ocr" });
           const base64 = await fileToBase64(workFile);
           update(q.id, { status: "ekstraksi" });
+          const availableCategories = mastersRef.current.kategori
+            .map((k) => k.nama)
+            .filter((n) => n && n.trim().length > 0);
           const result = await analyzeDocument({
             data: {
               mime: workFile.type || "application/octet-stream",
               base64,
               textPreview,
               sizeBytes: workFile.size,
+              availableCategories,
             },
           });
           const meta = metadataFromResponse(result.metadata);
+          // AI Smart Category Recognition — jika AI mengusulkan kategori baru
+          // simpan sebagai proposal (tidak auto-create) untuk ditinjau admin.
+          const proposedRaw = (result.metadata as unknown as {
+            kategori_saran_baru?: { value: string | null; alasan: string | null };
+          }).kategori_saran_baru;
+          const proposedName = (proposedRaw?.value ?? "").trim();
+          if (proposedName && !meta.kategori.value) {
+            const already = mastersRef.current.kategori.some(
+              (k) => k.nama.trim().toLowerCase() === proposedName.toLowerCase(),
+            );
+            if (!already) {
+              setCategoryProposals((cur) => ({
+                ...cur,
+                [q.id]: {
+                  value: proposedName,
+                  alasan: (proposedRaw?.alasan ?? "").trim(),
+                },
+              }));
+            }
+          }
           const { form, aiFilled } = buildFormFromMetadata(
             meta,
             mastersRef.current,
           );
           // Preserve any prior operator edits on the form.
-          let mergedFormForIntegrity: ArsipFormValues | null = null;
           setQueue((cur) =>
             cur.map((item) => {
               if (item.id !== q.id) return item;
@@ -313,7 +350,6 @@ export function useUploadQueue(masters: {
                 merged.nomorSurat.trim() &&
                 merged.judul.trim() &&
                 merged.kategori.trim();
-              mergedFormForIntegrity = merged;
               return {
                 ...item,
                 metadata: meta,
@@ -324,9 +360,6 @@ export function useUploadQueue(masters: {
               };
             }),
           );
-          if (mergedFormForIntegrity) {
-            analysed.push({ id: q.id, meta, form: mergedFormForIntegrity });
-          }
         } catch (e) {
           update(q.id, {
             status: "gagal",
@@ -336,35 +369,105 @@ export function useUploadQueue(masters: {
       }),
     );
 
-    // AI Archive Integrity Analysis — runs immediately after metadata
-    // extraction so the administrator sees both AI results (metadata +
-    // integrity) before saving. Failures are non-blocking.
-    if (seq.current === runId && analysed.length > 0) {
-      await Promise.all(
-        analysed.map(async ({ id, meta, form }) => {
-          if (!form.nomorSurat.trim() || !form.judul.trim()) return;
-          try {
-            const verdict = await checkArsipDuplicates({
-              data: {
-                nomorSurat: form.nomorSurat.trim(),
-                judul: form.judul.trim(),
-                deskripsi: form.deskripsi?.trim() ?? "",
-                ringkasan: meta.ringkasan?.value ?? "",
-                keywords: meta.keywords?.value ?? [],
-                tahun: Number(form.tahun) || undefined,
-                kategori: form.kategori?.trim() ?? "",
-              },
-            });
-            setIntegrity((cur) => ({ ...cur, [id]: verdict }));
-          } catch (err) {
-            console.warn("[integrity] analysis failed for", id, err);
-          }
-        }),
-      );
-    }
-
     if (seq.current === runId) setAnalysing(false);
   }, [queue, update]);
+
+  /**
+   * AI Pengecekan Nomor Surat — fitur AI terpisah yang dijalankan admin
+   * setelah AI Analisis Metadata selesai. Tidak membatalkan upload; hanya
+   * memberi tahu bila nomor surat sudah pernah dipakai.
+   */
+  const checkNomorForItem = useCallback(
+    async (id: string) => {
+      const target = queue.find((q) => q.id === id);
+      const nomor = target?.form?.nomorSurat?.trim() ?? "";
+      if (!nomor) return;
+      setNomorChecking((cur) => ({ ...cur, [id]: true }));
+      try {
+        const result = await checkNomorSurat({ data: { nomorSurat: nomor } });
+        setNomorCheck((cur) => ({ ...cur, [id]: result }));
+      } catch (err) {
+        console.warn("[nomor-check] failed", err);
+        setNomorCheck((cur) => ({
+          ...cur,
+          [id]: {
+            nomorSurat: nomor,
+            found: false,
+            matches: [],
+            checkedAt: new Date().toISOString(),
+          },
+        }));
+      } finally {
+        setNomorChecking((cur) => ({ ...cur, [id]: false }));
+      }
+    },
+    [queue],
+  );
+
+  /**
+   * Persetujuan usulan kategori baru — membuat kategori pada Manajemen
+   * Kategori (satu sumber data) lalu memasangnya ke form arsip terkait.
+   */
+  const approveCategoryProposal = useCallback(
+    async (id: string) => {
+      const proposal = categoryProposals[id];
+      if (!proposal) return;
+      setApprovingCategory((cur) => ({ ...cur, [id]: true }));
+      try {
+        const nama = proposal.value.trim();
+        // Kode sederhana dari huruf pertama tiap kata, uppercase, max 8 char.
+        const kode = (
+          nama
+            .split(/\s+/)
+            .map((w) => w[0] ?? "")
+            .join("")
+            .toUpperCase()
+            .replace(/[^A-Z0-9]/g, "") || "KAT"
+        ).slice(0, 8);
+        await createKategori({
+          data: {
+            nama,
+            kode,
+            deskripsi: proposal.alasan
+              ? `Diusulkan AI: ${proposal.alasan}`
+              : "Diusulkan AI dari analisis metadata dokumen.",
+            status: "Aktif",
+          },
+        });
+        // Refresh master data agar dropdown Kategori di form menampilkan
+        // kategori baru dan modul lain ikut sinkron.
+        await queryClient.invalidateQueries({ queryKey: ["kategori"] });
+        // Pasangkan kategori baru ke form item terkait.
+        setQueue((cur) =>
+          cur.map((q) =>
+            q.id === id
+              ? {
+                  ...q,
+                  form: { ...(q.form ?? DEFAULT_FORM), kategori: nama },
+                  aiFilled: { ...(q.aiFilled ?? {}), kategori: true },
+                }
+              : q,
+          ),
+        );
+        setCategoryProposals((cur) => {
+          const { [id]: _, ...rest } = cur;
+          return rest;
+        });
+      } catch (err) {
+        console.warn("[category-proposal] approve failed", err);
+      } finally {
+        setApprovingCategory((cur) => ({ ...cur, [id]: false }));
+      }
+    },
+    [categoryProposals, queryClient],
+  );
+
+  const dismissCategoryProposal = useCallback((id: string) => {
+    setCategoryProposals((cur) => {
+      const { [id]: _, ...rest } = cur;
+      return rest;
+    });
+  }, []);
 
   const uploadOne = useCallback(
     async (id: string) => {
@@ -383,36 +486,6 @@ export function useUploadQueue(masters: {
         const firstErr = Object.values(errs)[0] ?? "Lengkapi form terlebih dulu.";
         update(id, { status: "perlu_review", error: firstErr });
         return false;
-      }
-
-      // AI Duplicate Detection — run once per (file, form-content). The
-      // operator must explicitly acknowledge any candidate before we proceed.
-      if (!duplicateAck[id]) {
-        try {
-          const verdict = await checkArsipDuplicates({
-            data: {
-              nomorSurat: form.nomorSurat.trim(),
-              judul: form.judul.trim(),
-              deskripsi: form.deskripsi?.trim() ?? "",
-              ringkasan: target.metadata?.ringkasan?.value ?? "",
-              keywords: target.metadata?.keywords?.value ?? [],
-              tahun: Number(form.tahun) || undefined,
-              kategori: form.kategori?.trim() ?? "",
-            },
-          });
-          setIntegrity((cur) => ({ ...cur, [id]: verdict }));
-          if (verdict.candidates.length > 0) {
-            update(id, {
-              status: "perlu_review",
-              error:
-                "Terdeteksi kemungkinan duplikat. Tinjau daftar pada form, lalu klik Lanjutkan Simpan jika dokumen ini berbeda.",
-            });
-            return false;
-          }
-        } catch (err) {
-          // Duplicate-check failures must not block uploads; just log them.
-          console.warn("[uploadOne] duplicate check failed", err);
-        }
       }
 
       update(id, { status: "sedang_upload", progress: 5, error: undefined });
@@ -450,7 +523,7 @@ export function useUploadQueue(masters: {
           arsipId: created.id,
           error: undefined,
         });
-        setIntegrity((d) => {
+        setNomorCheck((d) => {
           const { [id]: _, ...rest } = d;
           return rest;
         });
@@ -469,12 +542,8 @@ export function useUploadQueue(masters: {
         return false;
       }
     },
-    [queue, update, queryClient, duplicateAck],
+    [queue, update, queryClient],
   );
-
-  const acknowledgeDuplicate = useCallback((id: string) => {
-    setDuplicateAck((a) => ({ ...a, [id]: true }));
-  }, []);
 
   const uploadAll = useCallback(async () => {
     const targets = queue.filter((q) => q.status === "siap_upload");
@@ -531,8 +600,10 @@ export function useUploadQueue(masters: {
     isUploading,
     summary,
     stats,
-    integrity,
-    duplicateAck,
+    nomorCheck,
+    nomorChecking,
+    categoryProposals,
+    approvingCategory,
     enqueue,
     remove,
     clear,
@@ -541,7 +612,9 @@ export function useUploadQueue(masters: {
     uploadOne,
     uploadAll,
     updateForm,
-    acknowledgeDuplicate,
+    checkNomorForItem,
+    approveCategoryProposal,
+    dismissCategoryProposal,
     validateSingleFile,
   };
 }
