@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Brain, Upload as UploadIcon, X, Sparkles, ScanSearch, CheckCircle2, Loader2, FileStack } from "lucide-react";
+import { Brain, Upload as UploadIcon, X, Sparkles, ScanSearch, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropZone } from "./DropZone";
 import { UploadQueue } from "./UploadQueue";
@@ -259,14 +259,7 @@ export function UploadWorkspace() {
           progress={q.nomorBatchProgress}
           onRun={() => void q.runNomorCheckAll()}
           onOpenForm={(id) => setReviewId(id)}
-          onDismiss={(id) => {
-            // Menghilangkan hasil temuan spesifik agar operator dapat
-            // fokus pada temuan yang tersisa. Aksi ini tidak menghapus
-            // arsip apa pun; hanya membersihkan hasil review.
-            const { [id]: _, ...rest } = q.nomorCheck;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (q as any).nomorCheck = rest;
-          }}
+          onDismiss={(id) => q.dismissNomorCheck(id)}
         />
       ) : null}
 
