@@ -157,6 +157,13 @@ export function useUploadQueue(masters: {
   const [approvingCategory, setApprovingCategory] = useState<
     Record<string, boolean>
   >({});
+  /** Batch AI Pengecekan Nomor Surat sedang berjalan. */
+  const [nomorBatchRunning, setNomorBatchRunning] = useState(false);
+  /** Progress batch check: {done, total}. */
+  const [nomorBatchProgress, setNomorBatchProgress] = useState<{
+    done: number;
+    total: number;
+  } | null>(null);
   const seq = useRef(0);
   // Use a ref for masters so the analyse closure always sees the latest list
   // without forcing re-creation of all callbacks.
@@ -216,6 +223,7 @@ export function useUploadQueue(masters: {
     setNomorChecking({});
     setCategoryProposals({});
     setApprovingCategory({});
+    setNomorBatchProgress(null);
   }, []);
 
   const dismissRejection = useCallback((index: number) => {
@@ -405,6 +413,51 @@ export function useUploadQueue(masters: {
   );
 
   /**
+   * AI Pengecekan Nomor Surat batch — dijalankan setelah AI Analisis
+   * Metadata selesai. Memeriksa seluruh item pada antrian yang telah
+   * memiliki nomor surat. Hasil ditampilkan pada panel batch di
+   * halaman Upload Arsip, tidak membatalkan proses upload.
+   */
+  const runNomorCheckAll = useCallback(async () => {
+    const targets = queue.filter(
+      (q) =>
+        (q.form?.nomorSurat?.trim().length ?? 0) > 0 &&
+        q.status !== "berhasil",
+    );
+    if (targets.length === 0) return;
+    setNomorBatchRunning(true);
+    setNomorBatchProgress({ done: 0, total: targets.length });
+    let done = 0;
+    // Sequential to keep server load reasonable and preserve order.
+    for (const t of targets) {
+      const nomor = t.form!.nomorSurat.trim();
+      setNomorChecking((cur) => ({ ...cur, [t.id]: true }));
+      try {
+        const result = await checkNomorSurat({
+          data: { nomorSurat: nomor },
+        });
+        setNomorCheck((cur) => ({ ...cur, [t.id]: result }));
+      } catch (err) {
+        console.warn("[nomor-check-batch] failed for", t.id, err);
+        setNomorCheck((cur) => ({
+          ...cur,
+          [t.id]: {
+            nomorSurat: nomor,
+            found: false,
+            matches: [],
+            checkedAt: new Date().toISOString(),
+          },
+        }));
+      } finally {
+        setNomorChecking((cur) => ({ ...cur, [t.id]: false }));
+        done += 1;
+        setNomorBatchProgress({ done, total: targets.length });
+      }
+    }
+    setNomorBatchRunning(false);
+  }, [queue]);
+
+  /**
    * Persetujuan usulan kategori baru — membuat kategori pada Manajemen
    * Kategori (satu sumber data) lalu memasangnya ke form arsip terkait.
    */
@@ -464,6 +517,13 @@ export function useUploadQueue(masters: {
 
   const dismissCategoryProposal = useCallback((id: string) => {
     setCategoryProposals((cur) => {
+      const { [id]: _, ...rest } = cur;
+      return rest;
+    });
+  }, []);
+
+  const dismissNomorCheck = useCallback((id: string) => {
+    setNomorCheck((cur) => {
       const { [id]: _, ...rest } = cur;
       return rest;
     });
@@ -602,6 +662,8 @@ export function useUploadQueue(masters: {
     stats,
     nomorCheck,
     nomorChecking,
+    nomorBatchRunning,
+    nomorBatchProgress,
     categoryProposals,
     approvingCategory,
     enqueue,
@@ -613,8 +675,10 @@ export function useUploadQueue(masters: {
     uploadAll,
     updateForm,
     checkNomorForItem,
+    runNomorCheckAll,
     approveCategoryProposal,
     dismissCategoryProposal,
+    dismissNomorCheck,
     validateSingleFile,
   };
 }

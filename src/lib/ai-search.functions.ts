@@ -14,10 +14,11 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Arsip } from "@/lib/arsip-data";
 import { ARSIP_SELECT, mapArsipRow, type ArsipDbRow } from "@/lib/arsip-mappers";
+import { writeLogEntry } from "@/lib/log-aktivitas.functions";
 
 const Input = z.object({
   query: z.string().trim().min(2).max(500),
-  limit: z.number().int().min(1).max(20).optional().default(10),
+  limit: z.number().int().min(1).max(50).optional().default(30),
 });
 
 export type AiSearchHit = {
@@ -33,7 +34,7 @@ export type AiSearchResult = {
   durations: { fetch: number; llm: number; total: number };
 };
 
-const MAX_CANDIDATES = 120;
+const MAX_CANDIDATES = 400;
 
 type LlmHit = { id: string; score: number; reason: string };
 
@@ -47,7 +48,8 @@ async function rankWithLlm(
   const system = `Anda adalah mesin pemeringkat dokumen arsip sekolah. Pengguna memberikan permintaan dalam bahasa alami. Anda mendapat daftar dokumen (id + ringkasan metadata). Tugas Anda memilih dokumen yang paling relevan dengan permintaan pengguna.
 
 Aturan:
-- Hanya kembalikan id yang BENAR-BENAR relevan dengan permintaan. Jika tidak ada yang relevan, kembalikan daftar kosong.
+- Kembalikan SEMUA dokumen yang benar-benar relevan dengan permintaan. Jangan membatasi jumlah hasil apabila memang ada banyak dokumen yang cocok, namun tetap patuhi batas maksimum ${limit} dokumen.
+- Jangan memasukkan dokumen yang tidak relevan hanya untuk memenuhi kuota.
 - Skor relevansi 0..1 (1.0 = sangat relevan).
 - "reason" adalah satu kalimat singkat dalam Bahasa Indonesia, profesional, tanpa emoji, menjelaskan alasan dokumen tersebut direkomendasikan.
 - Maksimum ${limit} hasil, urut dari paling relevan.
@@ -168,6 +170,13 @@ export const aiSearchArsip = createServerFn({ method: "POST" })
       const a = byId.get(r.id);
       if (a) hits.push({ arsip: a, score: r.score, reason: r.reason });
     }
+    // Log ke pusat AI Statistics agar aktivitas AI dapat dipantau.
+    void writeLogEntry(context.supabase, context.userId, {
+      action: "ai.search",
+      detail: `Pencarian AI: "${data.query.slice(0, 100)}" → ${hits.length} hasil dari ${all.length} kandidat`,
+      modul: "AI",
+      status: "Berhasil",
+    });
     return {
       query: data.query,
       totalScanned: all.length,

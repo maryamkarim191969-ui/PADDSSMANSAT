@@ -18,12 +18,37 @@ type ChatRequestBody = {
  * Failures are non-fatal — the assistant falls back to the static KB.
  */
 async function loadRuntimeSnapshot(): Promise<RuntimePlatformSnapshot> {
+  // Waktu server dalam zona WITA (Waktu Indonesia Tengah, UTC+8).
+  const now = new Date();
+  const witaFmt = new Intl.DateTimeFormat("id-ID", {
+    timeZone: "Asia/Makassar",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const hourStr = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Makassar",
+    hour: "2-digit",
+    hour12: false,
+  }).format(now);
+  const hour24 = Number.parseInt(hourStr, 10) || 0;
+
   const snap: RuntimePlatformSnapshot = {
     navigation: navigation.map((sec) => ({
       title: sec.title,
       items: sec.items.map((it) => ({ label: it.label, to: it.to })),
     })),
-    snapshotAt: new Date().toISOString(),
+    snapshotAt: now.toISOString(),
+    serverTime: {
+      iso: now.toISOString(),
+      tz: "WITA",
+      display: `${witaFmt.format(now)} WITA`,
+      hour24,
+    },
   };
   try {
     const { createClient } = await import("@supabase/supabase-js");
