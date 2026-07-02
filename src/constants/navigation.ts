@@ -17,11 +17,14 @@ import {
   Info,
   type LucideIcon,
 } from "lucide-react";
+import type { Permission } from "@/lib/permissions";
 
 export type NavItem = {
   label: string;
   to: string;
   icon: LucideIcon;
+  /** Optional permission required to see this item. Absent = visible to all authenticated users. */
+  perm?: Permission;
 };
 
 export type NavSection = {
@@ -55,14 +58,15 @@ export const navigation: NavSection[] = [
     title: "AI",
     items: [
       { label: "AI Assistant", to: "/ai-assistant", icon: Sparkles },
+      { label: "AI Statistics", to: "/ai-statistik", icon: BarChart3, perm: "read.statistik" },
     ],
   },
   {
     title: "Sistem",
     items: [
-      { label: "Manajemen User", to: "/user", icon: Users },
-      { label: "Backup & Restore", to: "/backup", icon: DatabaseBackup },
-      { label: "Pengaturan", to: "/pengaturan", icon: Settings },
+      { label: "Manajemen User", to: "/user", icon: Users, perm: "read.user" },
+      { label: "Backup & Restore", to: "/backup", icon: DatabaseBackup, perm: "read.backup" },
+      { label: "Pengaturan", to: "/pengaturan", icon: Settings, perm: "system.backup" },
       { label: "Pusat Informasi", to: "/info", icon: Info },
     ],
   },

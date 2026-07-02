@@ -30,6 +30,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCariRouteImport } from './routes/_authenticated/cari'
 import { Route as AuthenticatedBackupRouteImport } from './routes/_authenticated/backup'
 import { Route as AuthenticatedArsipRouteImport } from './routes/_authenticated/arsip'
+import { Route as AuthenticatedAiStatistikRouteImport } from './routes/_authenticated/ai-statistik'
 import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
 import { Route as PArsipIdRouteImport } from './routes/p.arsip.$id'
 
@@ -139,6 +140,12 @@ const AuthenticatedArsipRoute = AuthenticatedArsipRouteImport.update({
   path: '/arsip',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAiStatistikRoute =
+  AuthenticatedAiStatistikRouteImport.update({
+    id: '/ai-statistik',
+    path: '/ai-statistik',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAiAssistantRoute =
   AuthenticatedAiAssistantRouteImport.update({
     id: '/ai-assistant',
@@ -155,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/ai-assistant': typeof AuthenticatedAiAssistantRoute
+  '/ai-statistik': typeof AuthenticatedAiStatistikRoute
   '/arsip': typeof AuthenticatedArsipRoute
   '/backup': typeof AuthenticatedBackupRoute
   '/cari': typeof AuthenticatedCariRoute
@@ -179,6 +187,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/ai-assistant': typeof AuthenticatedAiAssistantRoute
+  '/ai-statistik': typeof AuthenticatedAiStatistikRoute
   '/arsip': typeof AuthenticatedArsipRoute
   '/backup': typeof AuthenticatedBackupRoute
   '/cari': typeof AuthenticatedCariRoute
@@ -205,6 +214,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/_authenticated/ai-assistant': typeof AuthenticatedAiAssistantRoute
+  '/_authenticated/ai-statistik': typeof AuthenticatedAiStatistikRoute
   '/_authenticated/arsip': typeof AuthenticatedArsipRoute
   '/_authenticated/backup': typeof AuthenticatedBackupRoute
   '/_authenticated/cari': typeof AuthenticatedCariRoute
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/ai-assistant'
+    | '/ai-statistik'
     | '/arsip'
     | '/backup'
     | '/cari'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/ai-assistant'
+    | '/ai-statistik'
     | '/arsip'
     | '/backup'
     | '/cari'
@@ -280,6 +292,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/ai-assistant'
+    | '/_authenticated/ai-statistik'
     | '/_authenticated/arsip'
     | '/_authenticated/backup'
     | '/_authenticated/cari'
@@ -459,6 +472,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedArsipRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ai-statistik': {
+      id: '/_authenticated/ai-statistik'
+      path: '/ai-statistik'
+      fullPath: '/ai-statistik'
+      preLoaderRoute: typeof AuthenticatedAiStatistikRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/ai-assistant': {
       id: '/_authenticated/ai-assistant'
       path: '/ai-assistant'
@@ -478,6 +498,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiAssistantRoute: typeof AuthenticatedAiAssistantRoute
+  AuthenticatedAiStatistikRoute: typeof AuthenticatedAiStatistikRoute
   AuthenticatedArsipRoute: typeof AuthenticatedArsipRoute
   AuthenticatedBackupRoute: typeof AuthenticatedBackupRoute
   AuthenticatedCariRoute: typeof AuthenticatedCariRoute
@@ -497,6 +518,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiAssistantRoute: AuthenticatedAiAssistantRoute,
+  AuthenticatedAiStatistikRoute: AuthenticatedAiStatistikRoute,
   AuthenticatedArsipRoute: AuthenticatedArsipRoute,
   AuthenticatedBackupRoute: AuthenticatedBackupRoute,
   AuthenticatedCariRoute: AuthenticatedCariRoute,
