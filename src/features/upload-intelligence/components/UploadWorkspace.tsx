@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Brain, Upload as UploadIcon, X, Sparkles } from "lucide-react";
+import { Brain, Upload as UploadIcon, X, Sparkles, ScanSearch, CheckCircle2, Loader2, FileStack } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropZone } from "./DropZone";
 import { UploadQueue } from "./UploadQueue";
 import { ArsipFormSheet } from "./ArsipFormSheet";
 import { UploadSummary as UploadSummaryCard } from "./UploadSummary";
+import { NomorCheckPanel } from "./NomorCheckPanel";
 import { useUploadQueue } from "../hooks/useUploadQueue";
 import { useMasterData } from "../hooks/useMasterData";
 import { MAX_FILES } from "../constants";
@@ -26,6 +27,66 @@ export function UploadWorkspace() {
   const readyToUpload = q.queue.filter((x) => x.status === "siap_upload").length;
   const needsReview = q.queue.filter((x) => x.status === "perlu_review").length;
   const busy = q.isAnalysing || q.isUploading;
+  const analysed = q.queue.filter(
+    (x) => x.status !== "menunggu" && x.status !== "gagal",
+  ).length;
+  const eligibleForNomor = q.queue.filter(
+    (x) => (x.form?.nomorSurat?.trim().length ?? 0) > 0 && x.status !== "berhasil",
+  ).length;
+  const nomorChecked = Object.keys(q.nomorCheck).length;
+  const succeeded = q.queue.filter((x) => x.status === "berhasil").length;
+
+  // Pipeline stages surfaced sebagai stepper visual (bukan perubahan
+  // workflow — hanya menampilkan tahapan yang sudah berjalan).
+  const stages = [
+    {
+      key: "intake",
+      label: "Intake",
+      hint: `${q.queue.length}/${MAX_FILES} file`,
+      state:
+        q.queue.length === 0
+          ? "pending"
+          : analysed === q.queue.length
+            ? "done"
+            : "active",
+    },
+    {
+      key: "meta",
+      label: "AI Analisis Metadata",
+      hint: `${analysed} dianalisis · ${pending} menunggu`,
+      state: q.isAnalysing
+        ? "active"
+        : q.queue.length > 0 && analysed === q.queue.length
+          ? "done"
+          : analysed > 0
+            ? "active"
+            : "pending",
+    },
+    {
+      key: "nomor",
+      label: "AI Pengecekan Nomor Surat",
+      hint: `${nomorChecked}/${eligibleForNomor} diperiksa`,
+      state: q.nomorBatchRunning
+        ? "active"
+        : nomorChecked > 0 && nomorChecked >= eligibleForNomor && eligibleForNomor > 0
+          ? "done"
+          : nomorChecked > 0
+            ? "active"
+            : "pending",
+    },
+    {
+      key: "upload",
+      label: "Upload",
+      hint: `${succeeded}/${q.queue.length} berhasil`,
+      state: q.isUploading
+        ? "active"
+        : succeeded > 0 && succeeded === q.queue.length
+          ? "done"
+          : succeeded > 0
+            ? "active"
+            : "pending",
+    },
+  ] as const;
 
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
@@ -47,6 +108,43 @@ export function UploadWorkspace() {
             </p>
           </div>
         </div>
+
+        {/* Pipeline stepper — hanya visualisasi tahapan, tidak mengubah workflow */}
+        <ol className="mt-4 grid gap-2 sm:grid-cols-4">
+          {stages.map((s, i) => (
+            <li
+              key={s.key}
+              className={
+                "flex items-start gap-2 rounded-xl border px-3 py-2.5 " +
+                (s.state === "active"
+                  ? "border-primary/40 bg-primary/5"
+                  : s.state === "done"
+                    ? "border-emerald-300 bg-emerald-50/40"
+                    : "border-border bg-background/40")
+              }
+            >
+              <div className="mt-0.5">
+                {s.state === "done" ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                ) : s.state === "active" ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                ) : (
+                  <div className="grid h-4 w-4 place-items-center rounded-full border-2 border-border text-[9px] font-bold text-muted-foreground">
+                    {i + 1}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold text-foreground">
+                  {s.label}
+                </p>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  {s.hint}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
@@ -114,6 +212,20 @@ export function UploadWorkspace() {
             <Button
               type="button"
               size="sm"
+              variant="secondary"
+              onClick={q.runNomorCheckAll}
+              disabled={
+                busy || q.nomorBatchRunning || eligibleForNomor === 0
+              }
+            >
+              <ScanSearch className="mr-1 h-4 w-4" />
+              {q.nomorBatchRunning
+                ? `Cek Nomor ${q.nomorBatchProgress?.done ?? 0}/${q.nomorBatchProgress?.total ?? 0}`
+                : "Cek Nomor Surat"}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
               onClick={q.uploadAll}
               disabled={busy || readyToUpload === 0}
             >
@@ -137,6 +249,26 @@ export function UploadWorkspace() {
           busy={busy}
         />
       </section>
+
+      {q.queue.length > 0 ? (
+        <NomorCheckPanel
+          queue={q.queue}
+          nomorCheck={q.nomorCheck}
+          nomorChecking={q.nomorChecking}
+          running={q.nomorBatchRunning}
+          progress={q.nomorBatchProgress}
+          onRun={() => void q.runNomorCheckAll()}
+          onOpenForm={(id) => setReviewId(id)}
+          onDismiss={(id) => {
+            // Menghilangkan hasil temuan spesifik agar operator dapat
+            // fokus pada temuan yang tersisa. Aksi ini tidak menghapus
+            // arsip apa pun; hanya membersihkan hasil review.
+            const { [id]: _, ...rest } = q.nomorCheck;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (q as any).nomorCheck = rest;
+          }}
+        />
+      ) : null}
 
       {q.summary ? <UploadSummaryCard summary={q.summary} /> : null}
 
