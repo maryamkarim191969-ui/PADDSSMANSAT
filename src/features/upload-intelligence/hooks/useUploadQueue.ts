@@ -522,6 +522,13 @@ export function useUploadQueue(masters: {
     });
   }, []);
 
+  const dismissNomorCheck = useCallback((id: string) => {
+    setNomorCheck((cur) => {
+      const { [id]: _, ...rest } = cur;
+      return rest;
+    });
+  }, []);
+
   const uploadOne = useCallback(
     async (id: string) => {
       const target = queue.find((q) => q.id === id);
@@ -671,6 +678,7 @@ export function useUploadQueue(masters: {
     runNomorCheckAll,
     approveCategoryProposal,
     dismissCategoryProposal,
+    dismissNomorCheck,
     validateSingleFile,
   };
 }
