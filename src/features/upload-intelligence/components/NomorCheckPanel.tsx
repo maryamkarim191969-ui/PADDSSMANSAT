@@ -201,7 +201,6 @@ export function NomorCheckPanel({
                                 <td className="px-2 py-1.5 text-right">
                                   <Link
                                     to="/arsip"
-                                    search={{ q: m.nomorSurat }}
                                     className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-medium text-foreground hover:bg-accent"
                                   >
                                     <ExternalLink className="h-3 w-3" />
