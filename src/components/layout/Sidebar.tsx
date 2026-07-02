@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronLeft, X } from "lucide-react";
 import { navigation } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 type SidebarProps = {
   open: boolean;
@@ -12,6 +13,16 @@ type SidebarProps = {
 
 export function Sidebar({ open, collapsed, onClose, onToggleCollapse }: SidebarProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { user } = useCurrentUser();
+  const permissions = user?.permissions ?? [];
+  const sections = navigation
+    .map((sec) => ({
+      ...sec,
+      items: sec.items.filter(
+        (it) => !it.perm || permissions.includes(it.perm),
+      ),
+    }))
+    .filter((sec) => sec.items.length > 0);
 
   return (
     <>
@@ -66,7 +77,7 @@ export function Sidebar({ open, collapsed, onClose, onToggleCollapse }: SidebarP
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
-          {navigation.map((section) => (
+          {sections.map((section) => (
             <div key={section.title} className="mb-5">
               {!collapsed && (
                 <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-sidebar-foreground/50">
