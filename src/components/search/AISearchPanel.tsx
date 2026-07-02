@@ -60,7 +60,7 @@ export function AISearchPanel({ actions }: { actions: SearchActions }) {
 
   const fn = useServerFn(aiSearchArsip);
   const mut = useMutation({
-    mutationFn: (q: string) => fn({ data: { query: q, limit: 10 } }),
+    mutationFn: (q: string) => fn({ data: { query: q, limit: 30 } }),
     onSuccess: (res) => {
       stageTimers.current.forEach((t) => window.clearTimeout(t));
       stageTimers.current = [];
