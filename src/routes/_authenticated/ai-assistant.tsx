@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Sparkles, Bot, LifeBuoy } from "lucide-react";
+import { Bot } from "lucide-react";
 import { AIChat } from "@/components/ai/AIChat";
 import { AIHistory } from "@/components/ai/AIHistory";
 import { AIQuickActions } from "@/components/ai/AIQuickActions";
-import { AIInsightPanel } from "@/components/ai/AIInsightPanel";
 import { AISuggestedCommands } from "@/components/ai/AISuggestedCommands";
 import { AICapabilities } from "@/components/ai/AICapabilities";
 import { useAIConversations } from "@/hooks/use-ai-conversations";
@@ -81,91 +80,64 @@ function AIAssistantPage() {
 
   return (
     <div className="space-y-6">
-      {/* AI Assistant hero */}
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 p-6 text-white shadow-lg shadow-blue-500/20 sm:p-8">
-        <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-fuchsia-400/20 blur-3xl" />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/15 backdrop-blur">
-              <Bot className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-white/70">
-                PADDS SMANSAT AI Assistant
-              </p>
-              <h2 className="mt-0.5 text-2xl font-bold tracking-tight sm:text-3xl">
-                Pusat Bantuan Platform
-              </h2>
-              <p className="mt-1 max-w-2xl text-sm text-white/80">
-                Asisten resmi PADDS SMANSAT yang membantu Anda memahami fungsi
-                setiap modul, cara penggunaan fitur, serta alur kerja
-                pengarsipan pada platform.
-              </p>
-            </div>
+      {/* Header ringkas — identitas AI Assistant tanpa hero berlebihan */}
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+        <div className="flex items-start gap-3">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+            <Bot className="h-5 w-5" />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-medium backdrop-blur">
-              <LifeBuoy className="h-3.5 w-3.5" /> Digital Customer Assistant
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-medium backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5" /> Knowledge Base PADDS SMANSAT
-            </span>
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold text-foreground">
+              AI Assistant
+            </h1>
+            <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+              Digital Customer Assistant PADDS SMANSAT — membantu Anda
+              memahami fungsi modul, cara penggunaan fitur, dan alur kerja
+              pengarsipan.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Insight panel — ringkasan visual platform, bukan tindakan AI */}
-      <AIInsightPanel />
-
-      {/* Quick actions — pintasan topik bantuan */}
-      <div>
-        <div className="mb-3 flex items-end justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">Topik Bantuan</h3>
-            <p className="text-xs text-muted-foreground">
-              Pilih topik untuk mendapatkan penjelasan singkat dari Asisten PADDS SMANSAT.
-            </p>
-          </div>
+      {/* Ruang percakapan diutamakan — riwayat di samping */}
+      <div className="grid gap-4 lg:grid-cols-[300px_1fr]">
+        <div className="lg:h-[640px]">
+          <AIHistory
+            items={conversations}
+            activeId={activeId}
+            onSelect={handleSelect}
+            onNew={handleNew}
+            onDelete={handleDelete}
+            onDeleteMany={handleDeleteMany}
+            onClearAll={handleClearAll}
+          />
         </div>
-        <AIQuickActions onPick={handleQuick} />
-      </div>
-
-      {/* Suggested commands — saran pertanyaan */}
-      <AISuggestedCommands onPick={handleQuick} />
-
-      {/* Workspace + history */}
-      <div>
-        <div className="mb-3">
-          <h3 className="text-sm font-semibold text-foreground">Ruang Percakapan</h3>
-          <p className="text-xs text-muted-foreground">
-            Ajukan pertanyaan seputar penggunaan platform. Riwayat percakapan tersimpan di samping.
-          </p>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-          <div className="lg:h-[640px]">
-            <AIHistory
-              items={conversations}
-              activeId={activeId}
-              onSelect={handleSelect}
-              onNew={handleNew}
-              onDelete={handleDelete}
-              onDeleteMany={handleDeleteMany}
-              onClearAll={handleClearAll}
-            />
-          </div>
-          <div className="h-[640px]">
-            <AIChat
-              conversation={active}
-              onUpdate={handleUpsert}
-              onStart={start}
-              seedPrompt={seedPrompt}
-            />
-          </div>
+        <div className="h-[640px]">
+          <AIChat
+            conversation={active}
+            onUpdate={handleUpsert}
+            onStart={start}
+            seedPrompt={seedPrompt}
+          />
         </div>
       </div>
 
-      {/* Capabilities — posisi AI Assistant pada arsitektur PADDS SMANSAT */}
+      {/* Panduan cepat & saran perintah — dikelompokkan di bawah agar chat mendapat fokus utama */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+          <h3 className="mb-2 text-sm font-semibold text-foreground">
+            Topik Bantuan
+          </h3>
+          <AIQuickActions onPick={handleQuick} />
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+          <h3 className="mb-2 text-sm font-semibold text-foreground">
+            Saran Pertanyaan
+          </h3>
+          <AISuggestedCommands onPick={handleQuick} />
+        </div>
+      </div>
+
       <AICapabilities />
     </div>
   );
