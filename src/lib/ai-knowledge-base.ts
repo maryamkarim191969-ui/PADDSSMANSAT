@@ -439,6 +439,13 @@ export type RuntimePlatformSnapshot = {
   version?: string;
   /** ISO timestamp the snapshot was taken on the server. */
   snapshotAt?: string;
+  /** Waktu server saat request diterima — untuk sapaan & referensi waktu. */
+  serverTime?: {
+    iso: string;
+    tz: string; // e.g. "WITA"
+    display: string; // e.g. "Kamis, 2 Juli 2026 pukul 14.30 WITA"
+    hour24: number; // 0..23 dalam zona tz
+  };
 };
 
 export function buildKnowledgeBlock(runtime?: RuntimePlatformSnapshot): string {
@@ -509,6 +516,21 @@ export function buildKnowledgeBlock(runtime?: RuntimePlatformSnapshot): string {
 
   if (runtime) {
     const rt: string[] = ["", "Kondisi Platform Saat Ini (Sinkronisasi Otomatis):"];
+    if (runtime.serverTime) {
+      const st = runtime.serverTime;
+      const salam =
+        st.hour24 < 11
+          ? "Selamat pagi"
+          : st.hour24 < 15
+            ? "Selamat siang"
+            : st.hour24 < 18
+              ? "Selamat sore"
+              : "Selamat malam";
+      rt.push(
+        `Waktu server saat ini: ${st.display} (${st.iso}).`,
+        `Gunakan waktu server tersebut untuk sapaan (mis. "${salam}"), referensi tanggal, dan jawaban yang berkaitan dengan waktu. Jangan menyebut waktu atau tanggal yang bertentangan dengan waktu server di atas.`,
+      );
+    }
     if (runtime.appIdentity?.name) rt.push(`Nama Aplikasi: ${runtime.appIdentity.name}`);
     if (runtime.appIdentity?.description)
       rt.push(`Deskripsi Resmi: ${runtime.appIdentity.description}`);
