@@ -12,6 +12,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { writeLogEntry } from "@/lib/log-aktivitas.functions";
 
 const Input = z.object({
   nomorSurat: z.string().trim().min(1).max(200),
@@ -52,6 +53,12 @@ export const checkNomorSurat = createServerFn({ method: "POST" })
       tahun: r.tahun as number,
       createdAt: r.created_at as string,
     }));
+    void writeLogEntry(context.supabase, context.userId, {
+      action: "ai.nomor_check",
+      detail: `Pengecekan nomor surat "${nomor}" → ${matches.length} temuan`,
+      modul: "AI",
+      status: "Berhasil",
+    });
     return {
       nomorSurat: nomor,
       found: matches.length > 0,
