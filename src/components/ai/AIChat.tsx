@@ -1,6 +1,8 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { recordEvent } from "@/lib/log-aktivitas.functions";
 import { AIMessage } from "./AIMessage";
 import { AILoading } from "./AILoading";
 import { AIError } from "./AIError";
@@ -38,6 +40,7 @@ function nowStamp() {
 export function AIChat({ conversation, onUpdate, onStart, seedPrompt }: Props) {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const logEvent = useServerFn(recordEvent);
 
   // Endpoint AI Assistant adalah Digital Customer Assistant: tidak butuh
   // autentikasi atau header tambahan, dan tidak mengirim konteks sesi
@@ -48,7 +51,29 @@ export function AIChat({ conversation, onUpdate, onStart, seedPrompt }: Props) {
   );
 
   const { messages, sendMessage, setMessages, status, error, regenerate, stop } =
-    useChat({ transport });
+    useChat({
+      transport,
+      onFinish: () => {
+        void logEvent({
+          data: {
+            action: "ai.assistant",
+            detail: "Percakapan AI Assistant",
+            modul: "AI",
+            status: "Berhasil",
+          },
+        }).catch(() => {});
+      },
+      onError: (err) => {
+        void logEvent({
+          data: {
+            action: "ai.assistant",
+            detail: `AI Assistant gagal: ${err?.message ?? "unknown"}`,
+            modul: "AI",
+            status: "Gagal",
+          },
+        }).catch(() => {});
+      },
+    });
 
   const isStreaming = status === "submitted" || status === "streaming";
 

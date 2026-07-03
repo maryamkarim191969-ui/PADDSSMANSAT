@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  AlertTriangle,
-  CheckCircle2,
   FileText,
   Loader2,
-  ScanSearch,
   Sparkles,
   X,
 } from "lucide-react";
@@ -36,7 +33,6 @@ import type {
   QueuedFile,
 } from "../types";
 import { formatBytes } from "./utils";
-import type { NomorSuratCheckResult } from "@/lib/nomor-check.functions";
 
 type Props = {
   item: QueuedFile | null;
@@ -45,9 +41,6 @@ type Props = {
   onChange: (id: string, patch: Partial<ArsipFormValues>) => void;
   onUpload: (id: string) => void;
   busy: boolean;
-  nomorCheck?: NomorSuratCheckResult | null;
-  nomorChecking?: boolean;
-  onCheckNomor?: (id: string) => void;
   categoryProposal?: { value: string; alasan: string } | null;
   approvingCategory?: boolean;
   onApproveCategory?: (id: string) => void;
@@ -61,9 +54,6 @@ export function ArsipFormSheet({
   onChange,
   onUpload,
   busy,
-  nomorCheck = null,
-  nomorChecking = false,
-  onCheckNomor,
   categoryProposal = null,
   approvingCategory = false,
   onApproveCategory,
@@ -101,8 +91,8 @@ export function ArsipFormSheet({
         <SheetHeader className="border-b border-border px-5 py-4">
           <SheetTitle className="text-base">Form Arsip</SheetTitle>
           <SheetDescription className="text-xs">
-            Tinjau data hasil AI Analisis Metadata. Setelah metadata lengkap,
-            jalankan AI Pengecekan Nomor Surat sebelum menyimpan arsip.
+            Tinjau data hasil AI Analisis Metadata. AI Pengecekan Nomor Surat
+            dijalankan pada tahapan tersendiri di halaman Upload Arsip.
           </SheetDescription>
         </SheetHeader>
 
@@ -331,78 +321,6 @@ export function ArsipFormSheet({
                       Abaikan
                     </Button>
                   </div>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {item ? (
-            <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3 text-xs">
-              <div className="flex items-start gap-2">
-                <ScanSearch className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-semibold text-foreground">
-                      AI Pengecekan Nomor Surat
-                    </p>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onCheckNomor?.(item.id)}
-                      disabled={nomorChecking || !form.nomorSurat.trim() || busy}
-                    >
-                      {nomorChecking ? (
-                        <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                      ) : null}
-                      {nomorCheck ? "Cek Ulang" : "Cek Nomor Surat"}
-                    </Button>
-                  </div>
-                  <p className="mt-0.5 text-muted-foreground">
-                    Bandingkan nomor surat hasil analisis metadata dengan arsip
-                    yang telah tersimpan pada database platform. Proses ini
-                    tidak membatalkan upload; keputusan akhir tetap pada
-                    administrator.
-                  </p>
-                  {nomorCheck ? (
-                    nomorCheck.found ? (
-                      <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-900">
-                        <div className="flex items-start gap-2">
-                          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[11px] font-semibold">
-                              Nomor surat {nomorCheck.nomorSurat} sudah tercatat
-                              pada {nomorCheck.matches.length} arsip. Tinjau
-                              sebelum menyimpan.
-                            </p>
-                            <ul className="mt-1.5 space-y-1">
-                              {nomorCheck.matches.map((m) => (
-                                <li
-                                  key={m.id}
-                                  className="rounded-sm bg-white/70 p-1.5 text-foreground"
-                                >
-                                  <p className="truncate text-[11px] font-medium">
-                                    {m.judul}
-                                  </p>
-                                  <p className="text-[10px] text-muted-foreground">
-                                    {m.nomorSurat} · {m.kategori} · {m.tahun}
-                                  </p>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="mt-2 flex items-start gap-2 rounded-md border border-emerald-300 bg-emerald-50 p-2 text-emerald-900">
-                        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        <p className="text-[11px]">
-                          Nomor surat {nomorCheck.nomorSurat} belum ditemukan
-                          pada database. Aman untuk disimpan.
-                        </p>
-                      </div>
-                    )
-                  ) : null}
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { Pencil, MapPin } from "lucide-react";
+import { Pencil, MapPin, Download, QrCode, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +8,17 @@ import {
 import type { Lokasi } from "@/lib/lokasi-data";
 import { statusTone, statusLabel } from "./LocationTable";
 import { LocationHierarchy } from "./LocationHierarchy";
+
+function qrUrl(data: string, size = 320) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=4&data=${encodeURIComponent(
+    data,
+  )}`;
+}
+
+function publicLokasiUrl(id: string) {
+  if (typeof window === "undefined") return `/p/lokasi/${id}`;
+  return `${window.location.origin}/p/lokasi/${id}`;
+}
 
 export function LocationDetail({
   lokasi,
@@ -70,6 +81,53 @@ export function LocationDetail({
                 {statusLabel(lokasi.status)}
               </span>
             </DetailRow>
+          </div>
+
+          <div>
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
+                <QrCode className="h-3.5 w-3.5" />
+                QR Code Lokasi
+              </span>
+            </p>
+            <div className="rounded-xl border border-border bg-muted/30 p-3">
+              <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center">
+                <div className="rounded-lg border border-border bg-white p-2 shadow-sm">
+                  <img
+                    src={qrUrl(publicLokasiUrl(lokasi.id), 200)}
+                    alt={`QR ${lokasi.kode}`}
+                    width={140}
+                    height={140}
+                  />
+                </div>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    Cetak dan tempel pada lokasi fisik (lemari, rak, atau map).
+                    Pindai QR untuk menampilkan lokasi dan daftar arsip yang
+                    berada di dalamnya.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <a
+                      href={qrUrl(publicLokasiUrl(lokasi.id), 600)}
+                      download={`qr-lokasi-${lokasi.kode.replace(/\W+/g, "-")}.png`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-[11px] font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                    >
+                      <Download className="h-3 w-3" /> Unduh QR
+                    </a>
+                    <a
+                      href={publicLokasiUrl(lokasi.id)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-[11px] font-medium text-foreground hover:bg-muted"
+                    >
+                      <ExternalLink className="h-3 w-3" /> Buka Halaman Publik
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-1">
