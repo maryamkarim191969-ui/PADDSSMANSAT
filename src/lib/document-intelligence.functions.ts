@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { writeLogEntry } from "@/lib/log-aktivitas.functions";
 
 /**
  * AI Document Intelligence — server-side orchestrator.
@@ -229,24 +231,47 @@ function safeJsonParse(raw: string): unknown {
 }
 
 export const analyzeDocument = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => InputSchema.parse(input))
-  .handler(async ({ data }): Promise<AnalyzeDocumentResult> => {
+  .handler(async ({ data, context }): Promise<AnalyzeDocumentResult> => {
     const t0 = Date.now();
     const content = buildUserContent(data);
     const tParse = Date.now() - t0;
 
     const tLlmStart = Date.now();
-    const raw = await callLovableAi(
-      content,
-      buildSystemPrompt(data.availableCategories),
-    );
-    const tLlm = Date.now() - tLlmStart;
-
-    const parsed = safeJsonParse(raw);
-    const metadata = ResponseSchema.parse(parsed);
-
-    return {
-      metadata,
-      durations: { parse: tParse, llm: tLlm, total: Date.now() - t0 },
-    };
+    try {
+      const raw = await callLovableAi(
+        content,
+        buildSystemPrompt(data.availableCategories),
+      );
+      const tLlm = Date.now() - tLlmStart;
+      const parsed = safeJsonParse(raw);
+      const metadata = ResponseSchema.parse(parsed);
+      void writeLogEntry(context.supabase, context.userId, {
+        action: "ai.metadata",
+        detail: `Analisis metadata dokumen (${data.mime}, ${(data.sizeBytes / 1024).toFixed(0)} KB)`,
+        modul: "AI",
+        status: "Berhasil",
+      });
+      if ((metadata.kategori_saran_baru?.value ?? "").trim()) {
+        void writeLogEntry(context.supabase, context.userId, {
+          action: "ai.category_proposal",
+          detail: `AI mengusulkan kategori baru: "${metadata.kategori_saran_baru?.value}"`,
+          modul: "AI",
+          status: "Berhasil",
+        });
+      }
+      return {
+        metadata,
+        durations: { parse: tParse, llm: Date.now() - tLlmStart, total: Date.now() - t0 },
+      };
+    } catch (err) {
+      void writeLogEntry(context.supabase, context.userId, {
+        action: "ai.metadata",
+        detail: `Analisis metadata gagal: ${(err as Error).message ?? "unknown"}`,
+        modul: "AI",
+        status: "Gagal",
+      });
+      throw err;
+    }
   });
