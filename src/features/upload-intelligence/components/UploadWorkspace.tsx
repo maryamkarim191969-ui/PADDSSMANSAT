@@ -1,5 +1,16 @@
 import { useState } from "react";
-import { Brain, Upload as UploadIcon, X, Sparkles, ScanSearch, CheckCircle2, Loader2 } from "lucide-react";
+import {
+  Brain,
+  Upload as UploadIcon,
+  X,
+  Sparkles,
+  ScanSearch,
+  CheckCircle2,
+  Loader2,
+  FileText,
+  Search as SearchIcon,
+  CircleCheckBig,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropZone } from "./DropZone";
 import { UploadQueue } from "./UploadQueue";
@@ -109,44 +120,78 @@ export function UploadWorkspace() {
           </div>
         </div>
 
-        {/* Pipeline stepper — hanya visualisasi tahapan, tidak mengubah workflow */}
-        <ol className="mt-4 grid gap-2 sm:grid-cols-4">
-          {stages.map((s, i) => (
-            <li
-              key={s.key}
-              className={
-                "flex items-start gap-2 rounded-xl border px-3 py-2.5 " +
-                (s.state === "active"
-                  ? "border-primary/40 bg-primary/5"
-                  : s.state === "done"
-                    ? "border-emerald-300 bg-emerald-50/40"
-                    : "border-border bg-background/40")
-              }
-            >
-              <div className="mt-0.5">
-                {s.state === "done" ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                ) : s.state === "active" ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                ) : (
-                  <div className="grid h-4 w-4 place-items-center rounded-full border-2 border-border text-[9px] font-bold text-muted-foreground">
-                    {i + 1}
+        {/* Alur kerja Upload Arsip — stepper horizontal dengan konektor. */}
+        <ol className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-0">
+          {stages.map((s, i) => {
+            const isLast = i === stages.length - 1;
+            const isDone = s.state === "done";
+            const isActive = s.state === "active";
+            return (
+              <li
+                key={s.key}
+                className="flex flex-1 items-start gap-3 lg:min-w-0"
+              >
+                <div className="flex flex-1 items-start gap-3">
+                  <span
+                    className={
+                      "grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-semibold ring-1 " +
+                      (isDone
+                        ? "bg-primary text-primary-foreground ring-primary"
+                        : isActive
+                          ? "bg-primary text-primary-foreground ring-primary shadow-sm"
+                          : "bg-muted text-muted-foreground ring-border")
+                    }
+                  >
+                    {isDone ? (
+                      <CheckCircle2 className="h-4 w-4" />
+                    ) : isActive && (s.key === "meta" || s.key === "nomor" || s.key === "upload") ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      i + 1
+                    )}
+                  </span>
+                  <div className="min-w-0">
+                    <p
+                      className={
+                        "text-sm font-semibold leading-tight " +
+                        (isActive
+                          ? "text-primary"
+                          : isDone
+                            ? "text-foreground"
+                            : "text-muted-foreground")
+                      }
+                    >
+                      {s.label}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {s.hint}
+                    </p>
                   </div>
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-xs font-semibold text-foreground">
-                  {s.label}
-                </p>
-                <p className="truncate text-[11px] text-muted-foreground">
-                  {s.hint}
-                </p>
-              </div>
-            </li>
-          ))}
+                </div>
+                {!isLast ? (
+                  <div
+                    aria-hidden
+                    className="mt-4 hidden flex-1 items-center px-2 lg:flex"
+                  >
+                    <div className="relative h-px w-full">
+                      <div className="absolute inset-0 border-t border-dashed border-border" />
+                      <div
+                        className={
+                          "absolute inset-0 border-t transition-all " +
+                          (isDone ? "border-primary" : "border-transparent")
+                        }
+                      />
+                    </div>
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
         </ol>
       </section>
 
+      <div className="grid gap-5 lg:grid-cols-3">
+        <div className="space-y-5 lg:col-span-2">
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
         <DropZone
           onFiles={q.enqueue}
@@ -249,6 +294,53 @@ export function UploadWorkspace() {
           busy={busy}
         />
       </section>
+        </div>
+
+        <aside className="space-y-5 lg:col-span-1">
+          <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+            <h2 className="text-sm font-semibold text-foreground">
+              Ringkasan Upload
+            </h2>
+            <dl className="mt-4 space-y-2.5">
+              <SummaryRow
+                icon={FileText}
+                tint="bg-primary/10 text-primary"
+                label="Total File"
+                value={`${q.queue.length} / ${MAX_FILES}`}
+              />
+              <SummaryRow
+                icon={CircleCheckBig}
+                tint="bg-emerald-50 text-emerald-600"
+                label="Sudah Dianalisis"
+                value={String(analysed)}
+              />
+              <SummaryRow
+                icon={SearchIcon}
+                tint="bg-amber-50 text-amber-600"
+                label="Siap Diperiksa"
+                value={String(eligibleForNomor)}
+              />
+              <SummaryRow
+                icon={UploadIcon}
+                tint="bg-violet-50 text-violet-600"
+                label="Siap Diupload"
+                value={String(readyToUpload)}
+              />
+            </dl>
+          </section>
+          <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+            <h2 className="text-sm font-semibold text-foreground">
+              Panduan Tahapan
+            </h2>
+            <ol className="mt-3 space-y-2 text-xs text-muted-foreground">
+              <li>1. Unggah dokumen melalui area intake.</li>
+              <li>2. Jalankan AI Analisis Metadata untuk mengisi form.</li>
+              <li>3. Jalankan AI Pengecekan Nomor Surat pada tahap tersendiri.</li>
+              <li>4. Tinjau form arsip lalu Upload Semua.</li>
+            </ol>
+          </section>
+        </aside>
+      </div>
 
       {q.queue.length > 0 ? (
         <NomorCheckPanel
@@ -270,11 +362,6 @@ export function UploadWorkspace() {
         masters={{ kategori: masters.kategori, lokasi: masters.lokasi }}
         onClose={() => setReviewId(null)}
         onChange={q.updateForm}
-        nomorCheck={reviewItem ? q.nomorCheck[reviewItem.id] ?? null : null}
-        nomorChecking={
-          reviewItem ? !!q.nomorChecking[reviewItem.id] : false
-        }
-        onCheckNomor={(id: string) => void q.checkNomorForItem(id)}
         categoryProposal={
           reviewItem ? q.categoryProposals[reviewItem.id] ?? null : null
         }
@@ -292,6 +379,30 @@ export function UploadWorkspace() {
         }}
         busy={busy}
       />
+    </div>
+  );
+}
+
+function SummaryRow({
+  icon: Icon,
+  tint,
+  label,
+  value,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  tint: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-3">
+      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${tint}`}>
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <dt className="text-[11px] text-muted-foreground">{label}</dt>
+        <dd className="text-base font-bold leading-tight text-foreground">{value}</dd>
+      </div>
     </div>
   );
 }
