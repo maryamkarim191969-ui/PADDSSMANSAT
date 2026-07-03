@@ -32,6 +32,7 @@ import { Route as AuthenticatedBackupRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedArsipRouteImport } from './routes/_authenticated/arsip'
 import { Route as AuthenticatedAiStatistikRouteImport } from './routes/_authenticated/ai-statistik'
 import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
+import { Route as PLokasiIdRouteImport } from './routes/p.lokasi.$id'
 import { Route as PArsipIdRouteImport } from './routes/p.arsip.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -152,6 +153,11 @@ const AuthenticatedAiAssistantRoute =
     path: '/ai-assistant',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const PLokasiIdRoute = PLokasiIdRouteImport.update({
+  id: '/p/lokasi/$id',
+  path: '/p/lokasi/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PArsipIdRoute = PArsipIdRouteImport.update({
   id: '/p/arsip/$id',
   path: '/p/arsip/$id',
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/api/ai-chat': typeof ApiAiChatRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/p/arsip/$id': typeof PArsipIdRoute
+  '/p/lokasi/$id': typeof PLokasiIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/api/ai-chat': typeof ApiAiChatRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/p/arsip/$id': typeof PArsipIdRoute
+  '/p/lokasi/$id': typeof PLokasiIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/api/ai-chat': typeof ApiAiChatRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/p/arsip/$id': typeof PArsipIdRoute
+  '/p/lokasi/$id': typeof PLokasiIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/api/ai-chat'
     | '/auth/callback'
     | '/p/arsip/$id'
+    | '/p/lokasi/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/api/ai-chat'
     | '/auth/callback'
     | '/p/arsip/$id'
+    | '/p/lokasi/$id'
   id:
     | '__root__'
     | '/'
@@ -312,6 +323,7 @@ export interface FileRouteTypes {
     | '/api/ai-chat'
     | '/auth/callback'
     | '/p/arsip/$id'
+    | '/p/lokasi/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -321,6 +333,7 @@ export interface RootRouteChildren {
   ApiAdminBootstrapRoute: typeof ApiAdminBootstrapRoute
   ApiAiChatRoute: typeof ApiAiChatRoute
   PArsipIdRoute: typeof PArsipIdRoute
+  PLokasiIdRoute: typeof PLokasiIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -486,6 +499,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAiAssistantRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/p/lokasi/$id': {
+      id: '/p/lokasi/$id'
+      path: '/p/lokasi/$id'
+      fullPath: '/p/lokasi/$id'
+      preLoaderRoute: typeof PLokasiIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/p/arsip/$id': {
       id: '/p/arsip/$id'
       path: '/p/arsip/$id'
@@ -556,6 +576,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminBootstrapRoute: ApiAdminBootstrapRoute,
   ApiAiChatRoute: ApiAiChatRoute,
   PArsipIdRoute: PArsipIdRoute,
+  PLokasiIdRoute: PLokasiIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
