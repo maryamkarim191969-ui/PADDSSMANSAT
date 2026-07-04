@@ -47,6 +47,22 @@ export function UploadWorkspace() {
   const nomorChecked = Object.keys(q.nomorCheck).length;
   const succeeded = q.queue.filter((x) => x.status === "berhasil").length;
 
+  // Penyempurnaan workflow setelah AI Pengecekan Nomor Surat: kelompokkan
+  // dokumen berdasarkan hasil pemeriksaan agar administrator dapat langsung
+  // mengetahui berapa yang siap diupload dan berapa yang ditahan sebagai
+  // dokumen perlu peninjauan.
+  const duplicateIds = new Set(
+    Object.entries(q.nomorCheck)
+      .filter(([, res]) => res?.found && res.matches.length > 0)
+      .map(([id]) => id),
+  );
+  const heldForReview = q.queue.filter(
+    (x) => duplicateIds.has(x.id) && x.status !== "berhasil",
+  ).length;
+  const readySafe = q.queue.filter(
+    (x) => x.status === "siap_upload" && !duplicateIds.has(x.id),
+  ).length;
+
   // Pipeline stages surfaced sebagai stepper visual (bukan perubahan
   // workflow — hanya menampilkan tahapan yang sudah berjalan).
   const stages = [
@@ -231,8 +247,9 @@ export function UploadWorkspace() {
               Antrian Dokumen
             </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {q.queue.length} dari {MAX_FILES} file • {readyToUpload} siap
-              upload • {needsReview} perlu review • {pending} menunggu analisis
+              {q.queue.length} dari {MAX_FILES} file • {readySafe} siap upload •{" "}
+              {heldForReview} perlu peninjauan • {needsReview} perlu review •{" "}
+              {pending} menunggu analisis
             </p>
           </div>
           <div className="col-span-2 flex flex-wrap items-center gap-2 sm:col-auto">
@@ -272,10 +289,19 @@ export function UploadWorkspace() {
               type="button"
               size="sm"
               onClick={q.uploadAll}
-              disabled={busy || readyToUpload === 0}
+              disabled={busy || readySafe === 0}
+              title={
+                heldForReview > 0
+                  ? `${heldForReview} dokumen ditahan karena indikasi duplikat`
+                  : undefined
+              }
             >
               <UploadIcon className="mr-1 h-4 w-4" />
-              {q.isUploading ? "Mengunggah…" : "Upload Semua"}
+              {q.isUploading
+                ? "Mengunggah…"
+                : heldForReview > 0
+                  ? `Upload Aman (${readySafe})`
+                  : "Upload Semua"}
             </Button>
           </div>
         </header>
@@ -292,6 +318,7 @@ export function UploadWorkspace() {
           onReview={(id) => setReviewId(id)}
           onUpload={(id) => void q.uploadOne(id)}
           busy={busy}
+          duplicateIds={duplicateIds}
         />
       </section>
         </div>
@@ -324,9 +351,22 @@ export function UploadWorkspace() {
                 icon={UploadIcon}
                 tint="bg-violet-50 text-violet-600"
                 label="Siap Diupload"
-                value={String(readyToUpload)}
+                value={String(readySafe)}
+              />
+              <SummaryRow
+                icon={CircleCheckBig}
+                tint="bg-amber-50 text-amber-700"
+                label="Perlu Peninjauan"
+                value={String(heldForReview)}
               />
             </dl>
+            {heldForReview > 0 ? (
+              <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50/60 p-2.5 text-[11px] text-amber-900">
+                {heldForReview} dokumen memiliki indikasi nomor surat duplikat
+                dan tidak akan ikut pada Upload Semua. Buka dokumen tersebut
+                untuk meninjau atau melakukan upload manual bila diperlukan.
+              </p>
+            ) : null}
           </section>
           <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
             <h2 className="text-sm font-semibold text-foreground">

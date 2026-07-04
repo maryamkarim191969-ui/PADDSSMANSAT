@@ -28,6 +28,61 @@ function newId() {
   return `f_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/**
+ * Smart OCR Processing — concurrency limiter agar analisis dokumen dalam
+ * jumlah besar tidak dipaksa berjalan bersamaan sehingga mengurangi risiko
+ * kegagalan OCR pada gateway. Nilai default 3 dipilih agar seimbang antara
+ * kecepatan dan stabilitas.
+ */
+const ANALYSIS_CONCURRENCY = 3;
+
+async function runWithConcurrency<T>(
+  items: T[],
+  limit: number,
+  worker: (item: T) => Promise<void>,
+) {
+  const queue = [...items];
+  const runners = Array.from(
+    { length: Math.min(limit, queue.length) },
+    async () => {
+      while (queue.length > 0) {
+        const next = queue.shift();
+        if (next === undefined) return;
+        await worker(next);
+      }
+    },
+  );
+  await Promise.all(runners);
+}
+
+/**
+ * Smart OCR Processing — kegagalan sementara pada layanan AI (rate limit,
+ * 5xx) di-retry otomatis dengan backoff singkat sehingga administrator
+ * tidak perlu menjalankan ulang analisis secara manual.
+ */
+async function withOcrRetry<T>(
+  task: () => Promise<T>,
+  attempts = 3,
+): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      return await task();
+    } catch (err) {
+      lastErr = err;
+      const msg = String((err as Error)?.message ?? "");
+      const retriable =
+        /rate limit|sibuk|429|502|503|504|network|timeout|failed to fetch/i.test(
+          msg,
+        );
+      if (!retriable || i === attempts - 1) throw err;
+      const delay = 800 * Math.pow(2, i) + Math.floor(Math.random() * 250);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw lastErr;
+}
+
 async function blobToBase64(blob: Blob): Promise<string> {
   const buf = await blob.arrayBuffer();
   const bytes = new Uint8Array(buf);
@@ -284,8 +339,7 @@ export function useUploadQueue(masters: {
     setAnalysing(true);
     setSummary(null);
 
-    await Promise.all(
-      targets.map(async (q) => {
+    await runWithConcurrency(targets, ANALYSIS_CONCURRENCY, async (q) => {
         if (seq.current !== runId) return;
         try {
           update(q.id, { status: "dianalisis", error: undefined });
@@ -304,15 +358,17 @@ export function useUploadQueue(masters: {
           const availableCategories = mastersRef.current.kategori
             .map((k) => k.nama)
             .filter((n) => n && n.trim().length > 0);
-          const result = await analyzeDocument({
-            data: {
-              mime: workFile.type || "application/octet-stream",
-              base64,
-              textPreview,
-              sizeBytes: workFile.size,
-              availableCategories,
-            },
-          });
+          const result = await withOcrRetry(() =>
+            analyzeDocument({
+              data: {
+                mime: workFile.type || "application/octet-stream",
+                base64,
+                textPreview,
+                sizeBytes: workFile.size,
+                availableCategories,
+              },
+            }),
+          );
           const meta = metadataFromResponse(result.metadata);
           // AI Smart Category Recognition — jika AI mengusulkan kategori baru
           // simpan sebagai proposal (tidak auto-create) untuk ditinjau admin.
@@ -374,7 +430,7 @@ export function useUploadQueue(masters: {
             error: (e as Error).message ?? "Gagal menganalisis dokumen.",
           });
         }
-      }),
+      },
     );
 
     if (seq.current === runId) setAnalysing(false);
@@ -606,7 +662,16 @@ export function useUploadQueue(masters: {
   );
 
   const uploadAll = useCallback(async () => {
-    const targets = queue.filter((q) => q.status === "siap_upload");
+    // Penyempurnaan workflow — dokumen yang memiliki indikasi nomor surat
+    // duplikat berdasarkan hasil AI Pengecekan Nomor Surat ditahan pada
+    // antrian sebagai bagian yang memerlukan peninjauan administrator.
+    // Administrator tetap dapat melakukan upload manual per item melalui
+    // uploadOne setelah membuka form dokumen tersebut.
+    const targets = queue.filter(
+      (q) =>
+        q.status === "siap_upload" &&
+        !(nomorCheck[q.id]?.found && nomorCheck[q.id]!.matches.length > 0),
+    );
     if (targets.length === 0) return;
     setUploading(true);
     const startedAt = Date.now();
@@ -638,7 +703,7 @@ export function useUploadQueue(masters: {
       sum.durasiUploadMs = Date.now() - startedAt;
       return sum;
     });
-  }, [queue, uploadOne]);
+  }, [queue, uploadOne, nomorCheck]);
 
   const stats = useMemo(
     () => ({

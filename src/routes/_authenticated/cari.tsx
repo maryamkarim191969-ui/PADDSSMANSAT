@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, ShieldQuestion } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Arsip } from "@/lib/arsip-data";
@@ -15,6 +15,7 @@ import { RecentSearch } from "@/components/search/RecentSearch";
 import { PopularSearch } from "@/components/search/PopularSearch";
 import { AIQuickSearch } from "@/components/search/AIQuickSearch";
 import { AISearchPanel } from "@/components/search/AISearchPanel";
+import { AIInvestigationPanel } from "@/components/search/AIInvestigationPanel";
 import { ArsipDetail } from "@/components/arsip/ArsipDetail";
 import { ArsipPreview } from "@/components/arsip/ArsipPreview";
 import {
@@ -49,7 +50,9 @@ export const Route = createFileRoute("/_authenticated/cari")({
 });
 
 function CariPage() {
-  const [mode, setMode] = useState<"standard" | "ai">("standard");
+  const [mode, setMode] = useState<"standard" | "ai" | "investigasi">(
+    "standard",
+  );
   const [query, setQuery] = useState("");
   const [committed, setCommitted] = useState("");
   const [kategori, setKategori] = useState("all");
@@ -182,10 +185,23 @@ function CariPage() {
         >
           <Sparkles className="h-3.5 w-3.5" /> AI Document Search
         </button>
+        <button
+          type="button"
+          onClick={() => setMode("investigasi")}
+          className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition-colors ${
+            mode === "investigasi"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <ShieldQuestion className="h-3.5 w-3.5" /> Tindak Lanjut
+        </button>
       </div>
 
       {mode === "ai" ? (
         <AISearchPanel actions={actions} />
+      ) : mode === "investigasi" ? (
+        <AIInvestigationPanel actions={actions} />
       ) : (
       <>
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
