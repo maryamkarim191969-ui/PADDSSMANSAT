@@ -1,4 +1,4 @@
-import { FileText, Trash2, Eye } from "lucide-react";
+import { FileText, Trash2, Eye, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { QueuedFile } from "../types";
@@ -11,12 +11,14 @@ export function UploadQueue({
   onReview,
   onUpload,
   busy,
+  duplicateIds,
 }: {
   items: QueuedFile[];
   onRemove: (id: string) => void;
   onReview: (id: string) => void;
   onUpload: (id: string) => void;
   busy: boolean;
+  duplicateIds?: Set<string>;
 }) {
   if (items.length === 0) {
     return (
@@ -39,10 +41,14 @@ export function UploadQueue({
           q.status === "ocr" ||
           q.status === "ekstraksi" ||
           q.status === "sedang_upload";
+        const isDuplicate = duplicateIds?.has(q.id) ?? false;
         return (
           <li
             key={q.id}
-            className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 sm:flex-row sm:items-center"
+            className={
+              "flex flex-col gap-3 rounded-xl border bg-card p-3 sm:flex-row sm:items-center " +
+              (isDuplicate ? "border-amber-300" : "border-border")
+            }
           >
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -56,6 +62,12 @@ export function UploadQueue({
                   {formatBytes(q.file.size)} •{" "}
                   {q.file.type || "tipe tidak dikenal"}
                 </p>
+                {isDuplicate ? (
+                  <p className="mt-1 inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">
+                    <AlertTriangle className="h-3 w-3" />
+                    Perlu Peninjauan — indikasi nomor surat duplikat
+                  </p>
+                ) : null}
                 {q.error ? (
                   <p className="mt-1 text-[11px] font-medium text-destructive">
                     {q.error}
@@ -87,8 +99,14 @@ export function UploadQueue({
                   size="sm"
                   onClick={() => onUpload(q.id)}
                   disabled={busy || inProgress}
+                  variant={isDuplicate ? "outline" : "default"}
+                  title={
+                    isDuplicate
+                      ? "Dokumen memiliki indikasi duplikat. Tetap upload manual bila diperlukan."
+                      : undefined
+                  }
                 >
-                  Upload File Ini
+                  {isDuplicate ? "Tetap Upload" : "Upload File Ini"}
                 </Button>
               ) : null}
               <Button
