@@ -289,10 +289,19 @@ export function UploadWorkspace() {
               type="button"
               size="sm"
               onClick={q.uploadAll}
-              disabled={busy || readyToUpload === 0}
+              disabled={busy || readySafe === 0}
+              title={
+                heldForReview > 0
+                  ? `${heldForReview} dokumen ditahan karena indikasi duplikat`
+                  : undefined
+              }
             >
               <UploadIcon className="mr-1 h-4 w-4" />
-              {q.isUploading ? "Mengunggah…" : "Upload Semua"}
+              {q.isUploading
+                ? "Mengunggah…"
+                : heldForReview > 0
+                  ? `Upload Aman (${readySafe})`
+                  : "Upload Semua"}
             </Button>
           </div>
         </header>
