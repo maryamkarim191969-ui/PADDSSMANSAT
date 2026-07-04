@@ -339,8 +339,7 @@ export function useUploadQueue(masters: {
     setAnalysing(true);
     setSummary(null);
 
-    await Promise.all(
-      targets.map(async (q) => {
+    await runWithConcurrency(targets, ANALYSIS_CONCURRENCY, async (q) => {
         if (seq.current !== runId) return;
         try {
           update(q.id, { status: "dianalisis", error: undefined });
@@ -359,15 +358,17 @@ export function useUploadQueue(masters: {
           const availableCategories = mastersRef.current.kategori
             .map((k) => k.nama)
             .filter((n) => n && n.trim().length > 0);
-          const result = await analyzeDocument({
-            data: {
-              mime: workFile.type || "application/octet-stream",
-              base64,
-              textPreview,
-              sizeBytes: workFile.size,
-              availableCategories,
-            },
-          });
+          const result = await withOcrRetry(() =>
+            analyzeDocument({
+              data: {
+                mime: workFile.type || "application/octet-stream",
+                base64,
+                textPreview,
+                sizeBytes: workFile.size,
+                availableCategories,
+              },
+            }),
+          );
           const meta = metadataFromResponse(result.metadata);
           // AI Smart Category Recognition — jika AI mengusulkan kategori baru
           // simpan sebagai proposal (tidak auto-create) untuk ditinjau admin.
@@ -429,7 +430,7 @@ export function useUploadQueue(masters: {
             error: (e as Error).message ?? "Gagal menganalisis dokumen.",
           });
         }
-      }),
+      },
     );
 
     if (seq.current === runId) setAnalysing(false);
