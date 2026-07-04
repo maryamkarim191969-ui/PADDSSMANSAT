@@ -662,7 +662,16 @@ export function useUploadQueue(masters: {
   );
 
   const uploadAll = useCallback(async () => {
-    const targets = queue.filter((q) => q.status === "siap_upload");
+    // Penyempurnaan workflow — dokumen yang memiliki indikasi nomor surat
+    // duplikat berdasarkan hasil AI Pengecekan Nomor Surat ditahan pada
+    // antrian sebagai bagian yang memerlukan peninjauan administrator.
+    // Administrator tetap dapat melakukan upload manual per item melalui
+    // uploadOne setelah membuka form dokumen tersebut.
+    const targets = queue.filter(
+      (q) =>
+        q.status === "siap_upload" &&
+        !(nomorCheck[q.id]?.found && nomorCheck[q.id]!.matches.length > 0),
+    );
     if (targets.length === 0) return;
     setUploading(true);
     const startedAt = Date.now();
@@ -694,7 +703,7 @@ export function useUploadQueue(masters: {
       sum.durasiUploadMs = Date.now() - startedAt;
       return sum;
     });
-  }, [queue, uploadOne]);
+  }, [queue, uploadOne, nomorCheck]);
 
   const stats = useMemo(
     () => ({
